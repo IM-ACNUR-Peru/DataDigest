@@ -16,34 +16,41 @@ library(ggplot2)
 library(unhcrthemes)
 library(scales)
 library(directlabels)
+library(labelled)
 
-date_start_filter <- Sys.Date() - 207
+date_start_filter <- Sys.Date() - 7
 
 kobo_setup(url = "https://kobo.unhcr.org",
            token = Sys.getenv('KOBO_API_KEY'))
 
 
 # Monitoreo de fronteras
-x <- kobo_submissions("aGSPzf4eNgZ5xKhYDe8kbm")
+x <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
 main <- x$main
-member2 <- x$member2
+member2 <- x$member
 
-main_last_week <- main %>% 
-  filter(today > date_start_filter)
 
-main_last_week_tumbes <- main_last_week %>% 
+main_last_week <- main |> 
+  dplyr::filter(today > date_start_filter) |>
+  dplyr::filter(grepl("mon_fro",kit_orientacion)) |>
+  dplyr::filter(test_real == "registro_real")
+
+names_per <- c('perfil')
+main_last_week[,names_per] <- lapply(main_last_week[,names_per] , to_factor)
+
+main_last_week_tumbes <- main_last_week |> 
   filter(lugar_monitoreo == "tumbes")
 
-main_last_week_tacna <- main_last_week %>% 
+main_last_week_tacna <- main_last_week |> 
   filter(lugar_monitoreo == "tacna")
 
-main_last_week_mdd <- main_last_week %>% 
+main_last_week_mdd <- main_last_week |> 
   filter(lugar_monitoreo == "mdd")
 
-main_last_week_lima <- main_last_week %>% 
+main_last_week_lima <- main_last_week |> 
   filter(lugar_monitoreo == "lima")
 
-main_last_week_puno <- main_last_week %>% 
+main_last_week_puno <- main_last_week |> 
   filter(lugar_monitoreo == "puno")
 
 
@@ -78,22 +85,22 @@ Boletín semanal para la operación ACNUR Perú.
 
 ## Monitoreo de fronteras
 
-Durante la semana pasada se entrevistaron `r nrow(main_last_week)` grupos (`r sum(main_last_week$miembros)` personas). Entre ellos, `r nrow(main_last_week_tumbes)` en Tumbes, `r nrow(main_last_week_tacna)` en Tacna, `r nrow(main_last_week_puno)` en Puno, `r nrow(main_last_week_mdd)` en Madre de Dios y `r nrow(main_last_week_lima)` en Lima.  
+Durante la semana pasada se entrevistaron `r nrow(main_last_week)` grupos (`r sum(main_last_week$miembros)` personas). Entre ellos, `r nrow(main_last_week_tumbes)` en Tumbes, `r nrow(main_last_week_tacna)` en Tacna, `r nrow(main_last_week_puno)` en Puno, y `r nrow(main_last_week_mdd)` en Madre de Dios.  
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.width=7,fig.height=2.7}
 
-library(labelled)
+
 data(main_last_week, package = "unhcrthemes")
 names <- c('lugar_monitoreo')
 main_last_week[,names] <- lapply(main_last_week[,names] , to_factor)
 
-main_last_week_chart_previo <- main_last_week %>% 
-  select(paisprevio, lugar_monitoreo) %>% 
-  group_by(paisprevio, lugar_monitoreo) %>% 
-  summarise(total = n()) %>% 
-  group_by(lugar_monitoreo) %>% 
-  mutate(percent = total/sum(total)) %>% 
-  ungroup() %>% 
+main_last_week_chart_previo <- main_last_week |> 
+  select(paisprevio, lugar_monitoreo) |> 
+  group_by(paisprevio, lugar_monitoreo) |> 
+  summarise(total = n()) |> 
+  group_by(lugar_monitoreo) |> 
+  mutate(percent = total/sum(total)) |> 
+  ungroup() |> 
   select(paisprevio, lugar_monitoreo, percent) 
 
 
@@ -129,13 +136,13 @@ ggplot(main_last_week_chart_previo, aes(x = reorder(paisprevio, -percent), y = p
 data(main_last_week, package = "unhcrthemes")
 
 
-main_last_week_chart_destino <- main_last_week %>% 
-  select(paisdestino, lugar_monitoreo) %>% 
-  group_by(paisdestino, lugar_monitoreo) %>% 
-  summarise(total = n()) %>% 
-  group_by(lugar_monitoreo) %>% 
-  mutate(percent = total/sum(total)) %>% 
-  ungroup() %>% 
+main_last_week_chart_destino <- main_last_week |> 
+  select(paisdestino, lugar_monitoreo) |> 
+  group_by(paisdestino, lugar_monitoreo) |> 
+  summarise(total = n()) |> 
+  group_by(lugar_monitoreo) |> 
+  mutate(percent = total/sum(total)) |> 
+  ungroup() |> 
   select(paisdestino, lugar_monitoreo, percent) 
 
 
@@ -254,50 +261,56 @@ Para más información, consultar el [dashboard de estadísticas poblacionales](
 
 ```{r , echo=FALSE, warning=FALSE}
 
-kobo_setup(url = "https://kobo.unhcr.org",
-           token = Sys.getenv('KOBO_API_KEY'))
+#kobo_setup(url = "https://kobo.unhcr.org",
+#           token = Sys.getenv('KOBO_API_KEY'))
 
 
 # Monitoreo de fronteras
-rudah <- kobo_submissions("aBtojPUs4yxmaLNqN7NCvc")
+#rudah <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
 
-rudah <- rudah$main
+rudah <- main_last_week 
 
-rudah <- rudah %>% 
-    mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) %>% 
-    mutate_at(vars(starts_with("tipo_orientacion_")), ~ replace(., is.na(.), 0)) %>% 
-    filter(today > date_start_filter) %>% 
-    filter(test_real == "registro_real")
 
-total_kits <- rudah %>% 
- select("qt_kit01":"qt_kit_other") %>% 
-  rowSums() %>% 
+
+# rudah <- rudah |> 
+#     mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |> 
+#     mutate_at(vars(starts_with("tipo_orientacion_")), ~ replace(., is.na(.), 0)) |> 
+#     filter(today > date_start_filter) |> 
+#     filter(test_real == "registro_real")
+
+total_kits <- rudah |> 
+ select("kit_dis_kit_abrigo_bebe":"kit_dis_other")  |>  
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
   sum()
 
-total_cris <- rudah %>% 
- select("qt_cri01":"qt_cri_other") %>% 
-  rowSums() %>% 
+total_cris <- rudah |> 
+ select("cri_dis_balde":"cri_dis_teclado") |> 
+ mutate_all(~coalesce(.,0)) |> 
+ rowSums() |> 
+ sum()
+
+personas_kits <- rudah |> 
+  mutate(sum = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
   sum()
 
-personas_kits <- rudah %>% 
-  mutate(sum = rowSums(across("qt_kit01":"qt_kit_other"))) %>% 
-  filter(sum > 0) %>% 
-  select("member_count") %>% 
-  rowSums() %>% 
-  sum()
-
-personas_cris <- rudah %>% 
-  mutate(sum = rowSums(across("qt_cri01":"qt_cri_other"))) %>% 
-  filter(sum > 0) %>% 
-  select("member_count") %>% 
-  rowSums() %>% 
+personas_cris <- rudah |> 
+  mutate(sum = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
   sum()
 
 
-personas_kits_cris <- rudah %>% 
-  filter(grepl('asistencia_kit', kit_orientacion)) %>% 
-  select("member_count") %>% 
-  rowSums() %>% 
+personas_kits_cris <- rudah |> 
+  filter(grepl('asistencia_kit', kit_orientacion)) |> 
+  select("member_count") |> 
+  rowSums() |> 
   sum()
 
 
@@ -307,7 +320,7 @@ personas_kits_cris <- rudah %>%
 Durante la última semana, la operación distribuyó `r total_kits` Kits y `r total_cris` CRIs, asistiendo a un total de `r personas_kits_cris` personas (`r personas_kits` personas recibieron kits y `r personas_cris` recibieron CRIs).
 
 
-```{r, echo=FALSE, warning = FALSE, message = FALSE, result = FALSE, fig.width=7,fig.height=3}
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
 
 
 #drv$list_files("MyE ACNUR/2. Monitoreo respuesta/2023/Reporte Kits e items Humanitarios - 2023", full_names=TRUE)
@@ -319,73 +332,71 @@ Durante la última semana, la operación distribuyó `r total_kits` Kits y `r to
 #   
 # invisible(file.remove("Registro de Asistencia y Ayuda Humanitaria 2023 v.03.xlsx"))
 # 
-# rudah_xls_ofi <- rudah_xls %>% 
-#   filter(list_name == "oficina") %>% 
+# rudah_xls_ofi <- rudah_xls |> 
+#   filter(list_name == "oficina") |> 
 #   select(name, label)
 # 
 # colnames(rudah_xls_ofi) <- c("oficina", "Nombre")
 # 
-rudah_kits_cris_plot <- rudah %>%
-  mutate(sum_kits = rowSums(across("qt_kit01":"qt_kit_other"))) %>%
-  mutate(sum_cris = rowSums(across("qt_cri01":"qt_cri_other"))) %>%
-  select("oficina", "sum_kits", "sum_cris") %>%
-  group_by(oficina) %>%
-  summarise_at(c("sum_kits", "sum_cris"), sum, na.rm = TRUE)
-# 
-# 
-# rudah_kits_cris_plot <- left_join(rudah_kits_cris_plot, rudah_xls_ofi, by="oficina")
-# 
-# colnames(rudah_kits_cris_plot) <- c("oficina_code", "Kits", "CRIs", "Oficina")
-# 
-# rudah_kits_cris_plot <- rudah_kits_cris_plot %>% 
-#   select(Oficina, Kits, CRIs) %>% 
-#   pivot_longer(!Oficina, names_to="Tipo", values_to="Total")
-# 
-# rudah_kits_cris_plot_ymax <- max(rudah_kits_cris_plot$Total)*1.1
-# 
-#   
-# ggplot(rudah_kits_cris_plot) +
-#   geom_col(aes(
-#     x = Tipo,
-#     y = Total,
-#     fill = Tipo
-#   ),
-#   position = position_dodge(width = 0.7),
-#   width = 0.6
-#   ) +
-# #  facet_wrap(~ Oficina, nrow = 2) +
-#     facet_grid(~ Oficina, scales='free', space='free') +
-#   geom_text(aes(
-#     x = Tipo,
-#     y = Total,
-#     group = Tipo,
-#     label = Total
-#   ),
-#   position = position_dodge(width = 0.7),
-#   vjust = -1,
-#   size = 8 / .pt
-#   ) +
-#   scale_fill_unhcr_d(
-#     palette = "pal_unhcr",
-#     nmax = 3,
-#     order = c(2, 3, 1)
-#   ) +
-#   labs(
-#     title = "Asistencia brindada",
-#     y = "Insumos distribuidos",
-#     x = "Oficina de terreno",
-#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-#   ) +
-#  # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
-#   scale_y_continuous(expand = expansion(c(0, 0.1))) +
-#   theme_unhcr(
-#     grid = FALSE,
-#     axis = "x",
-#     axis_title = FALSE,
-#     axis_text = "x"
-#   ) +
-#   ylim(0,rudah_kits_cris_plot_ymax) +
-#   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+
+names_lug <- c('region')
+rudah[,names_lug] <- lapply(rudah[,names_lug] , to_factor)
+
+rudah_kits_cris_plot <- rudah |>
+  mutate(Kits = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |>
+  mutate(CRIs = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |>
+  select("region", "Kits", "CRIs") |>
+  group_by(region) |>
+  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
+  pivot_longer(!region, names_to="Tipo", values_to="Total")
+
+
+
+rudah_kits_cris_plot_ymax <- max(rudah_kits_cris_plot$Total)*1.1
+
+
+ggplot(rudah_kits_cris_plot) +
+  geom_col(aes(
+    x = Tipo,
+    y = Total,
+    fill = Tipo
+  ),
+  position = position_dodge(width = 0.7),
+  width = 0.6
+  ) +
+#  facet_wrap(~ Oficina, nrow = 2) +
+    facet_grid(~ region, scales='free', space='free') +
+  geom_text(aes(
+    x = Tipo,
+    y = Total,
+    group = Tipo,
+    label = Total
+  ),
+  position = position_dodge(width = 0.7),
+  vjust = -1,
+  size = 8 / .pt
+  ) +
+  scale_fill_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 3,
+    order = c(2, 3, 1)
+  ) +
+  labs(
+    title = "Asistencia brindada",
+    y = "Insumos distribuidos",
+    x = "Oficina de terreno",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+ # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
+  scale_y_continuous(expand = expansion(c(0, 0.1))) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "x",
+    axis_title = FALSE,
+    axis_text = "x"
+  ) +
+  ylim(0,rudah_kits_cris_plot_ymax) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
 
 ```
@@ -396,35 +407,44 @@ rudah_kits_cris_plot <- rudah %>%
 
 ```{r, echo=FALSE, warning=FALSE}
 
-total_ori_gen <- rudah %>%
- select("tipo_orientacion_ori_general") %>%
-  rowSums() %>%
+total_ori_gen <- rudah |>
+  dplyr::select("tipo_orientacion") |>
+  na.omit() |> 
+  dplyr::filter(tipo_orientacion == "ori_general") |> 
+  nrow() |>
   sum()
 
-total_ori_legal <- rudah %>%
- select("tipo_orientacion_ori_legal") %>%
-  rowSums() %>%
-  sum()
-
-personas_ori_gen <- rudah %>%
-  mutate(sum = rowSums(across("tipo_orientacion_ori_general"))) %>%
-  filter(sum > 0) %>%
-  select("member_count") %>%
-  rowSums() %>%
-  sum()
-
-personas_ori_legal <- rudah %>%
-  mutate(sum = rowSums(across("tipo_orientacion_ori_legal"))) %>%
-  filter(sum > 0) %>%
-  select("member_count") %>%
-  rowSums() %>%
+total_ori_legal <- rudah |>
+  dplyr::select("tipo_orientacion") |>
+  na.omit() |> 
+  dplyr::filter(tipo_orientacion == "ori_legal") |> 
+  nrow() |>
   sum()
 
 
-personas_ori_tot <- rudah %>%
-  filter(!is.na(tipo_orientacion)) %>%
-  select("member_count") %>%
-  rowSums() %>%
+personas_ori_gen <- rudah |>
+  dplyr::select("tipo_orientacion", "member_count") |>
+  na.omit() |> 
+  dplyr::filter(tipo_orientacion == "ori_general") |> 
+  select("member_count") |>
+  rowSums() |>
+  sum()
+
+personas_ori_legal <- rudah |>
+  dplyr::select("tipo_orientacion", "member_count") |>
+  na.omit() |> 
+  dplyr::filter(tipo_orientacion == "ori_legal") |> 
+  select("member_count") |>
+  rowSums() |>
+  sum()
+
+
+personas_ori_tot <- rudah |>
+  dplyr::select("tipo_orientacion", "member_count") |>
+  na.omit() |> 
+  dplyr::filter(tipo_orientacion == "ori_legal" | tipo_orientacion == "ori_general") |> 
+  select("member_count") |>
+  rowSums() |>
   sum()
 
 tot_ori_statement <- ifelse(personas_ori_tot == 0 | personas_ori_gen == 0 | personas_ori_legal == 0, "", paste(" (", personas_ori_gen, "personas con orientaciones generales y ", personas_ori_legal, "personas con orientaciones legales)"))
@@ -435,23 +455,26 @@ tot_ori_statement <- ifelse(personas_ori_tot == 0 | personas_ori_gen == 0 | pers
 La operación brindó `r total_ori_gen` orientaciones generales y `r total_ori_legal` orientaciones legales durante los últimos 7 días a un total de `r personas_ori_tot` personas`r tot_ori_statement`.
 
 
-```{r eval=FALSE, fig.height=3, fig.width=7, message=FALSE, warning=FALSE, include=FALSE, result=FALSE}
-
-rudah_ori_plot <- rudah %>%
-  mutate(sum_ori_gen = rowSums(across("tipo_orientacion_ori_general"))) %>%
-  mutate(sum_ori_legal = rowSums(across("tipo_orientacion_ori_legal"))) %>%
-  select("oficina", "sum_ori_gen", "sum_ori_legal") %>%
-  group_by(oficina) %>%
-  summarise_at(c("sum_ori_gen", "sum_ori_legal"), sum, na.rm = TRUE)
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
 
 
-rudah_ori_plot <- left_join(rudah_ori_plot, rudah_xls_ofi, by="oficina")
 
-colnames(rudah_ori_plot) <- c("oficina_code", "Orientaciones Generales", "Orientaciones Legales", "Oficina")
+rudah_ori_plot <- rudah |>
+  dplyr::select("region", "tipo_orientacion") |>
+  na.omit() |> 
+  dplyr::filter(tipo_orientacion == "ori_legal" | tipo_orientacion == "ori_general") |> 
+  mutate(tot = 1) |> 
+  dplyr::add_row(region = NA, tipo_orientacion = "ori_legal", tot = 0) |> 
+  dplyr::add_row(region = NA, tipo_orientacion = "ori_general", tot = 0) |> 
+  pivot_wider(names_from = "tipo_orientacion", values_from = "tot") |> 
+  filter(!is.na(region)) |> 
+  mutate_at(c("ori_legal", "ori_general"), ~replace_na(.,0)) |> 
+  rename("Or. Legal" = ori_legal) |> 
+  rename("Or. General" = ori_general) |> 
+  pivot_longer(!region, names_to="Tipo", values_to="Total")
 
-rudah_ori_plot <- rudah_ori_plot %>%
-  select(Oficina, `Orientaciones Generales`, `Orientaciones Legales`) %>%
-  pivot_longer(!Oficina, names_to="Tipo", values_to="Total")
+ 
+
 
 rudah_ori_plot_ymax <- max(rudah_ori_plot$Total)*1.1
 
@@ -466,7 +489,7 @@ ggplot(rudah_ori_plot) +
   width = 0.6
   ) +
 #  facet_wrap(~ Oficina, nrow = 2) +
-    facet_grid(~ Oficina, scales='free', space='free') +
+    facet_grid(~ region, scales='free', space='free') +
   geom_text(aes(
     x = Tipo,
     y = Total,
@@ -504,28 +527,28 @@ ggplot(rudah_ori_plot) +
 
 
 ```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
-
+# 
 # library(knitr)
 # library(kableExtra)
 # 
 # 
-# orientaciones <- rudah %>% 
-#   select(oficina, "orientacion_general_ori_general1":"orientacion_general_other", "orientacion_legal_ori_legal1":"orientacion_legal_other") %>% 
-#   mutate_at(vars(starts_with("ori")), ~ replace(., is.na(.), 0)) %>% 
-#   pivot_longer(!oficina, names_to="Tipo", values_to="Total") %>% 
-#   filter(Total > 0) %>% 
-#   group_by(oficina, Tipo) %>% 
+# orientaciones <- rudah |>
+#   select(region, "orientacion_general", "orientacion_legal") |>
+#   mutate_at(vars(starts_with("ori")), ~ replace(., is.na(.), 0)) |>
+#   pivot_longer(!region, names_to="Tipo", values_to="Total") |>
+#   filter(Total > 0) |>
+#   group_by(region, Tipo) |>
 #   summarise_at(c("Total"), sum, na.rm = TRUE)
 # 
 # 
 # orientaciones <- left_join(orientaciones, rudah_xls_ofi, by="oficina")
 # 
 # 
-# rudah_xls_ori <- rudah_xls %>% 
-#   filter(list_name == "orientacion_general" | list_name == "orientacion_legal") %>% 
-#   mutate(namenew = paste(list_name, "_", name, sep="")) %>% 
-#   select(namenew, label) 
-#   
+# rudah_xls_ori <- rudah_xls |>
+#   filter(list_name == "orientacion_general" | list_name == "orientacion_legal") |>
+#   mutate(namenew = paste(list_name, "_", name, sep="")) |>
+#   select(namenew, label)
+# 
 # 
 # colnames(rudah_xls_ori) <- c("Tipo", "Nombre Orientacion")
 # 
@@ -536,8 +559,8 @@ ggplot(rudah_ori_plot) +
 # 
 # colnames(orientaciones) <- c("Oficina/Unidad", "Tipo de Orientación Brindada", "Total")
 # 
-# orientaciones %>%
-#   kbl() %>%
+# orientaciones |>
+#   kbl() |>
 #   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 ```
