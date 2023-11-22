@@ -9,6 +9,8 @@ It is set up here to allow for automation with a direct connection to UNHCR kobo
 
 Below is a step by step how to in order to configure the automation.
 
+See also - https://posit.co/blog/git-backed-deployment-in-posit-connect/ & https://docs.posit.co/connect/user/git-backed/#updating-content
+
  
 ### Step 1 - Set up and/or refresh the `manifest.json`
 
