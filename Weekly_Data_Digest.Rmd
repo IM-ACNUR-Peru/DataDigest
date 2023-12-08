@@ -30,9 +30,6 @@ x <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
 main <- x$main
 member2 <- x$member
 
-# main <- read_xlsx("main.xlsx")
-# member2 <- read_xlsx("member2.xlsx")
-
 main <- main |> 
     dplyr::filter(test_real == "registro_real")
 
