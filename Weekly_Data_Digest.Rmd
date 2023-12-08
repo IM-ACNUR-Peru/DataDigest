@@ -2,6 +2,7 @@
 title: "Weekly Data Digest"
 author: IM ACNUR Peru
 output: unhcrdown::paged_simple
+#knit: pagedown::chrome_print
 
 ---
 
@@ -28,6 +29,9 @@ kobo_setup(url = "https://kobo.unhcr.org",
 x <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
 main <- x$main
 member2 <- x$member
+
+# main <- read_xlsx("main.xlsx")
+# member2 <- read_xlsx("member2.xlsx")
 
 main <- main |> 
     dplyr::filter(test_real == "registro_real")
@@ -187,7 +191,8 @@ Para más información, consultar el [dashboard de monitoreo de fronteras](https
 
 ```{r , echo=FALSE, warning=FALSE}
 
-rudah <- main_last_week 
+rudah <- main |> 
+  dplyr::filter(today > date_start_filter) 
 
 
 total_kits <- rudah |> 
@@ -446,11 +451,14 @@ kits_cris_list_trend <- rudah_all |>
   mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
   group_by(region) |> 
+#  filter(sum(Kit) + sum(CRI) != 0) |> 
   mutate(cma_kits = zoo::rollmean(Kit, 7, fill = NA)) |>   # Centered moving average
-  mutate(cma_cris = zoo::rollmean(CRI, 7, fill = NA)) # Centered moving average
+  mutate(cma_cris = zoo::rollmean(CRI, 7, fill = NA))  # Centered moving average
   # select(region, today, cma_kits, cma_cris) |> 
   # pivot_longer(cols = c(cma_kits, cma_cris), names_to = "Tipo", values_to = "CMA") |> 
-  # na.omit() |> 
+  #  na.omit() |> 
+  # group_by(region) %>%
+  # filter(sum(Kit) + sum(CRI) != 0)
 
 
 ymax_kits_cris_list_trend <- max(kits_cris_list_trend$cma_cris * 1.1)
@@ -490,7 +498,7 @@ ggplot(kits_cris_list_trend, aes(
   
 ```
 
-### Predicción: Kits y CRIs necesarios
+### Predicción: 30 días de Kits y CRIs necesarios
 
 Utilizando los promedios indicados arriba para los últimos dos meses, se puede proyectar que **durante los próximos 30 días** cada región necesitará los siguientes insumos:
 
@@ -498,13 +506,21 @@ Utilizando los promedios indicados arriba para los últimos dos meses, se puede 
 
 ## Prediction: # of Kits and # of CRIs needed over the coming two weeks, with breakdown of type
 
+## Reference periods
+referencemin = Sys.Date() - 60
+referencemax = Sys.Date()
+
+projectiondays = 30
+
+## Basic prediction calculation based on moving averages
+
 kits_cris_list_trend_pred <- kits_cris_list_trend |> 
-  filter(today > Sys.Date() - 60) |> 
+  filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region) |> 
   summarise_at(c("cma_kits", "cma_cris"), mean, na.rm = TRUE) |> 
-  mutate("Kits Necesarios" = round(cma_kits * 30, digits = 0)) |> 
-  mutate("CRIs Necesarios" = round(cma_cris * 30, digits = 0)) |> 
+  mutate("Kits Necesarios" = round(cma_kits * projectiondays, digits = 0)) |> 
+  mutate("CRIs Necesarios" = round(cma_cris * projectiondays, digits = 0)) |> 
   mutate(Total = `Kits Necesarios` + `CRIs Necesarios`) |> 
   arrange(-Total) |> 
   select(region, "Kits Necesarios", "CRIs Necesarios") 
@@ -518,47 +534,194 @@ kits_cris_list_trend_pred |>
 
 ```
 
+Con desglose estimado por tipo de kit y CRI:
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+
+## Mobile average over time of kits and CRI distributions by region
+
+
+## Trends by Kits and CRIs
+kits_cris_list_trend_detail <- rudah_all |>
+  select(region, today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
+  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("kit")), as.numeric) |>
+  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("cri")), as.numeric) |>
+   group_by(region, today) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) |> 
+#  arrange(region, today, Kit_CRI, -Total) |> 
+ # pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
+  ungroup() |> 
+  pad(interval = "day", group = "region") |> 
+  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  na.omit()|> 
+  filter(today > referencemin) |> 
+  na.omit() |> 
+  group_by(region) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+            list(~. * projectiondays)) |> 
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+            list(~round(., digits = 0))) |> 
+  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+  pivot_wider(names_from = region, values_from = Total) |> 
+  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+#  mutate(across(c('Detalle'), str_replace, '_', ' '))
+  mutate_all(funs(str_replace_all(., "_", " "))) |> 
+  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+  mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
+  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
+  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  mutate_at(vars("Arequipa":"Tumbes"), as.numeric) |>
+  mutate(Total = rowSums(across("Arequipa":"Tumbes"))) |>
+  # mutate_at(vars("PE04":"PE24"), as.numeric) |>
+  # mutate(Total = rowSums(across("PE04":"PE24"))) |>
+  filter(Total != 0)
+
+kits_cris_list_trend_detail |>
+  kbl() |>
+  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
+
+
+```
+
+Cabe resaltar que se trata de datos indicativos basados en actividades pasadas, que no consideran eventuales nuevos eventos o decisiones operativas.
+
+Entre estos, los siguientes insumos podrían ser destinados a los socios:
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+
+## Mobile average over time of kits and CRI distributions by region by partner
+
+## Preparing the data
+
+kits_cris_list_trend_detail_socios <- rudah_all |>
+  dplyr::filter(grepl("sociounhcr", organizacion) | grepl("obc", organizacion) | grepl("ciremi", organizacion)) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "hias", "HIAS")) |>  
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "crus_roja", "Cruz Roja")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "caritas", "Caritas")) |>  
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "encuentros", "Encuentros")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "scalabrini", "Scalabrini")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "ach", "ACH")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "uv", "UV")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
+  dplyr::filter(tipo_socio != "other") |> 
+  select(region, today, organizacion, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
+  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("kit")), as.numeric) |>
+  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("cri")), as.numeric) |>
+   group_by(region, today, organizacion) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) 
+
+
+## Adding min and max dates for missing values by region and organization
+kits_cris_list_trend_detail_socios_min <- kits_cris_list_trend_detail_socios |> 
+  group_by(region, organizacion) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemin)
+
+kits_cris_list_trend_detail_socios_max <- kits_cris_list_trend_detail_socios |> 
+  group_by(region, organizacion) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemax)
+
+## Continuing the pipe: Trends by type of kits and CRIs and partners
+kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
+  ungroup() |> 
+  bind_rows(kits_cris_list_trend_detail_socios_min) |> 
+  bind_rows(kits_cris_list_trend_detail_socios_max) |> 
+  pad(interval = "day", group = "region") |> 
+  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  na.omit()|> 
+  filter(today > referencemin) |> 
+  na.omit() |> 
+  group_by(region, organizacion) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+            list(~. * projectiondays)) |> 
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+            list(~round(., digits = 0))) |> 
+  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+  pivot_wider(names_from = region, values_from = Total) |> 
+  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+#  mutate(across(c('Detalle'), str_replace, '_', ' '))
+  mutate_all(funs(str_replace_all(., "_", " "))) |> 
+  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+  mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
+  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
+  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  mutate(across('organizacion', str_replace, 'obc', 'OBC')) |> 
+  mutate(across('organizacion', str_replace, 'sociounhcr', 'Socio ACNUR Local')) |> 
+  mutate(across('organizacion', str_replace, 'ciremi', 'CIREMI')) |> 
+  mutate_at(vars("Arequipa":"Tumbes"), as.numeric) |>
+  mutate_at(vars("Arequipa":"Tumbes"), ~replace_na(.,0)) |>
+  mutate(Total = rowSums(across("Arequipa":"Tumbes"))) |>
+  # mutate_at(vars("PE04":"PE24"), as.numeric) |>
+  # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
+  # mutate(Total = rowSums(across("PE04":"PE24"))) |>
+  filter(Total != 0)
+
+kits_cris_list_trend_detail_socios |>
+  kbl() |>
+  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
+
+
+```
+
 ## Respuesta en curso: Orientaciones brindadas en frontera
 
 
 ```{r, echo=FALSE, warning=FALSE}
 
-total_ori_gen <- rudah |>
+
+rudah_ori <- main |> 
+  dplyr::filter(today > date_start_filter) 
+
+
+total_ori_gen <- rudah_ori |>
   dplyr::select("tipo_orientacion") |>
   na.omit() |> 
-  dplyr::filter(tipo_orientacion == "ori_general") |> 
+  dplyr::filter(grepl("ori_general", tipo_orientacion)) |> 
   nrow() |>
   sum()
 
-total_ori_legal <- rudah |>
+total_ori_legal <- rudah_ori |>
   dplyr::select("tipo_orientacion") |>
   na.omit() |> 
-  dplyr::filter(tipo_orientacion == "ori_legal") |> 
+  dplyr::filter(grepl("ori_legal", tipo_orientacion)) |> 
   nrow() |>
   sum()
 
 
-personas_ori_gen <- rudah |>
+personas_ori_gen <- rudah_ori |>
   dplyr::select("tipo_orientacion", "member_count") |>
   na.omit() |> 
-  dplyr::filter(tipo_orientacion == "ori_general") |> 
+  dplyr::filter(grepl("ori_general", tipo_orientacion)) |> 
   select("member_count") |>
   rowSums() |>
   sum()
 
-personas_ori_legal <- rudah |>
+personas_ori_legal <- rudah_ori |>
   dplyr::select("tipo_orientacion", "member_count") |>
   na.omit() |> 
-  dplyr::filter(tipo_orientacion == "ori_legal") |> 
+  dplyr::filter(grepl("ori_legal", tipo_orientacion)) |> 
   select("member_count") |>
   rowSums() |>
   sum()
 
 
-personas_ori_tot <- rudah |>
+personas_ori_tot <- rudah_ori |>
   dplyr::select("tipo_orientacion", "member_count") |>
   na.omit() |> 
-  dplyr::filter(tipo_orientacion == "ori_legal" | tipo_orientacion == "ori_general") |> 
+  dplyr::filter(grepl("ori_legal", tipo_orientacion) | grepl("ori_general", tipo_orientacion)) |> 
   select("member_count") |>
   rowSums() |>
   sum()
@@ -574,22 +737,32 @@ La operación brindó `r total_ori_gen` orientaciones generales y `r total_ori_l
 ```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
 
 
+rudah_ori_plot <- main
 
-rudah_ori_plot <- rudah |>
+names_lug_ori <- c('region')
+rudah_ori_plot[,names_lug_ori] <- lapply(rudah_ori_plot[,names_lug_ori] , to_factor)
+
+rudah_ori_plot <- rudah_ori_plot |>
+  dplyr::filter(today > date_start_filter) |> 
   dplyr::select("region", "tipo_orientacion") |>
-  na.omit() |> 
-  dplyr::filter(tipo_orientacion == "ori_legal" | tipo_orientacion == "ori_general") |> 
-  mutate(tot = 1) |> 
-  dplyr::add_row(region = NA, tipo_orientacion = "ori_legal", tot = 0) |> 
-  dplyr::add_row(region = NA, tipo_orientacion = "ori_general", tot = 0) |> 
-  pivot_wider(names_from = "tipo_orientacion", values_from = "tot") |> 
-  filter(!is.na(region)) |> 
-  mutate_at(c("ori_legal", "ori_general"), ~replace_na(.,0)) |> 
-  rename("Or. Legal" = ori_legal) |> 
-  rename("Or. General" = ori_general) |> 
+  na.omit() |>
+  dplyr::filter(grepl("ori_legal", tipo_orientacion) | grepl("ori_general", tipo_orientacion)) |> 
+  tidyr::separate(tipo_orientacion, into = c("Ori1", "Ori2"), sep = "\\s") |> 
+  pivot_longer(!region, names_to="Tipo", values_to="tipo_orientacion") |> 
+  select(region, tipo_orientacion) |> 
+  mutate(tot = 1) |>
+  dplyr::add_row(region = NA, tipo_orientacion = "ori_legal", tot = 0) |>
+  dplyr::add_row(region = NA, tipo_orientacion = "ori_general", tot = 0) |>
+  group_by(region, tipo_orientacion) |> 
+  summarise_at(vars("tot"), sum, na.rm = TRUE) |> 
+  pivot_wider(names_from = "tipo_orientacion", values_from = "tot") |>
+  filter(!is.na(region)) |>
+  mutate_at(c("ori_legal", "ori_general"), ~replace_na(.,0)) |>
+  rename("Or. Legal" = ori_legal) |>
+  rename("Or. General" = ori_general) |>
   pivot_longer(!region, names_to="Tipo", values_to="Total")
 
- 
+
 
 
 rudah_ori_plot_ymax <- max(rudah_ori_plot$Total)*1.1
@@ -635,7 +808,7 @@ ggplot(rudah_ori_plot) +
     axis_title = FALSE,
     axis_text = "x"
   ) +
-  ylim(0,rudah_kits_cris_plot_ymax) +
+  ylim(0,rudah_ori_plot_ymax) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
 
@@ -688,69 +861,69 @@ ggplot(rudah_ori_plot) +
 ```{r eval=FALSE, fig.height=2.5, fig.width=7, message=FALSE, warning=FALSE, dpi=150, include=FALSE}
 
 # La última actualización de la OIM-DTM fue el `r# max(as.Date(DTM$Fecha, '%d/%m/%Y'))`:
-#Plot
-f <- function(punto) {
-  df = filter(DTM, Punto == punto)
-  df1 = filter(df, Fecha > Sys.Date() - 90)
-  df_max = max(df1$Personas)
-  ggplot(df1, aes(
-  x = Fecha,
-  y = Personas,
-  color = Tipo
-)) +
-  geom_line(size = 0.5) +
-  geom_dl(aes(label = Tipo),
-    method = list(cex = 2,
-      dl.trans(x = x + 0.1),
-      "last.points"
-    ),
-    size = 10 / .pt
-  ) +
-  labs(
-    title = paste("Flujos en ", punto),
-    y = "Personas observadas",
-    caption = "Fuente: Conteo DTM (OIM)"
-  ) +
- # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_y_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(),
-    labels = label_number_si(),
-    limits = c(0, df_max)
-  ) +
-  scale_color_unhcr_d(
-    palette = "pal_unhcr",
-    nmax = 10,
-    order = c(4, 1)
-  ) +
-  coord_cartesian(clip = "off") +
-  theme_unhcr(
-    grid = "Y",
-    axis = "x",
-    axis_title = "y",
-    legend = FALSE,
-    font_size = 40
-  ) +
-  theme(plot.margin = margin(r = 50))
-}
-
-Tumbes_Plot <- f("Tumbes")
-Tumbes_Plot
+# #Plot
+# f <- function(punto) {
+#   df = filter(DTM, Punto == punto)
+#   df1 = filter(df, Fecha > Sys.Date() - 90)
+#   df_max = max(df1$Personas)
+#   ggplot(df1, aes(
+#   x = Fecha,
+#   y = Personas,
+#   color = Tipo
+# )) +
+#   geom_line(size = 0.5) +
+#   geom_dl(aes(label = Tipo),
+#     method = list(cex = 2,
+#       dl.trans(x = x + 0.1),
+#       "last.points"
+#     ),
+#     size = 10 / .pt
+#   ) +
+#   labs(
+#     title = paste("Flujos en ", punto),
+#     y = "Personas observadas",
+#     caption = "Fuente: Conteo DTM (OIM)"
+#   ) +
+#  # scale_x_continuous(breaks = pretty_breaks()) +
+#   scale_y_continuous(
+#     expand = expansion(c(0, 0.1)),
+#     breaks = pretty_breaks(),
+#     labels = label_number_si(),
+#     limits = c(0, df_max)
+#   ) +
+#   scale_color_unhcr_d(
+#     palette = "pal_unhcr",
+#     nmax = 10,
+#     order = c(4, 1)
+#   ) +
+#   coord_cartesian(clip = "off") +
+#   theme_unhcr(
+#     grid = "Y",
+#     axis = "x",
+#     axis_title = "y",
+#     legend = FALSE,
+#     font_size = 40
+#   ) +
+#   theme(plot.margin = margin(r = 50))
+# }
+# 
+# Tumbes_Plot <- f("Tumbes")
+# Tumbes_Plot
 
 
 ```
 
 ```{r eval=FALSE, include=FALSE, fig.align='center', fig.height=2.5, fig.width=7, warning=FALSE, dpi=150, results='hide'}
-
-Tacna_Plot <- f("Tacna")
-Tacna_Plot
+# 
+# Tacna_Plot <- f("Tacna")
+# Tacna_Plot
 
 ```
 
 ```{r  eval=FALSE, include=FALSE, echo=FALSE, warning=FALSE, fig.align = 'center', results='hide', fig.width=7,fig.height=2.5, dpi=150}
-
-Puno_Plot <- f("Puno")
-Puno_Plot
+# 
+# Puno_Plot <- f("Puno")
+# Puno_Plot
 
 
 ```

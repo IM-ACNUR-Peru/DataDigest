@@ -4803,6 +4803,12 @@
     }
   },
   "files": {
+    "main.xlsx": {
+      "checksum": "a7ab77006a267daf86df2f09eb9450a6"
+    },
+    "member2.xlsx": {
+      "checksum": "589c9a4357b954e8112bbea0c6bd1b03"
+    },
     "README.md": {
       "checksum": "a2e2393b2779f4bb054f7cedaf36426e"
     },
@@ -4810,10 +4816,10 @@
       "checksum": "bbbb423f96dd678ba37d83a9b1b79600"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "da9d148b8dc3f2e0e5fc14ce7bf974e2"
+      "checksum": "4572c9bdbddaf7c58059bdd45c4b7ffa"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "7525cc2c8622f2a977408683a3fd12ba"
+      "checksum": "2fb12061323cd9e0a20af9672ac866d9"
     }
   },
   "users": null
