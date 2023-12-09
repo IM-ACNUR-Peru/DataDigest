@@ -4816,10 +4816,13 @@
       "checksum": "bbbb423f96dd678ba37d83a9b1b79600"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "effcad9d77cf4a4398a32bb55529dd4f"
+      "checksum": "f75d5c8762fec945c7b6138d7384f535"
+    },
+    "Weekly_Data_Digest.pdf": {
+      "checksum": "f1902b1320e0f953bc17a85597bbdb00"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "0dd95d1a2a54753d63d64cfe245541bd"
+      "checksum": "d55b4a7d0807785da20841f9a3d44071"
     }
   },
   "users": null

@@ -332,7 +332,7 @@ kits_cris_list <- rudah |>
   arrange(region, Kit_CRI, -Total)
 
 kits_cris_list |>
-  kbl() |>
+  kable() |>
   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 ```
@@ -419,7 +419,7 @@ Desde la implementación actual del RUDAH (`r start_rudah`) se registró la dist
 
 Promedio móvil de distribuciones diarias de Kits (en azul) y CRIs (en gris) por región:
 
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=4}
 
 ## Mobile average over time of kits and CRI distributions by region
 
@@ -667,7 +667,7 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   filter(Total != 0)
 
 kits_cris_list_trend_detail_socios |>
-  kbl() |>
+  kable() |>
   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 
@@ -846,7 +846,7 @@ ggplot(rudah_ori_plot) +
 # colnames(orientaciones) <- c("Oficina/Unidad", "Tipo de Orientación Brindada", "Total")
 # 
 # orientaciones |>
-#   kbl() |>
+#   kable() |>
 #   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 ```
