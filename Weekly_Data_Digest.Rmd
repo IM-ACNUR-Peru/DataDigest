@@ -332,7 +332,7 @@ kits_cris_list <- rudah |>
   arrange(region, Kit_CRI, -Total)
 
 kits_cris_list |>
-  kable() |>
+  kbl() |>
   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 ```
@@ -546,10 +546,24 @@ kits_cris_list_trend_detail <- rudah_all |>
   mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("cri")), as.numeric) |>
    group_by(region, today) |> 
-  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) |> 
-#  arrange(region, today, Kit_CRI, -Total) |> 
- # pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) 
+
+
+## Adding min and max dates for missing values by region
+kits_cris_list_trend_detail_min <- kits_cris_list_trend_detail |> 
+  group_by(region) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemin)
+
+kits_cris_list_trend_detail_max <- kits_cris_list_trend_detail |> 
+  group_by(region) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemax)
+
+
+
+kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
   ungroup() |> 
+  bind_rows(kits_cris_list_trend_detail_min) |> 
+  bind_rows(kits_cris_list_trend_detail_max) |>
   pad(interval = "day", group = "region") |> 
   mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
@@ -564,7 +578,9 @@ kits_cris_list_trend_detail <- rudah_all |>
   mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
             list(~round(., digits = 0))) |> 
   pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+  filter(Total > 0) |> 
   pivot_wider(names_from = region, values_from = Total) |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
 #  mutate(across(c('Detalle'), str_replace, '_', ' '))
@@ -578,7 +594,8 @@ kits_cris_list_trend_detail <- rudah_all |>
   mutate(Total = rowSums(across("Arequipa":"Tumbes"))) |>
   # mutate_at(vars("PE04":"PE24"), as.numeric) |>
   # mutate(Total = rowSums(across("PE04":"PE24"))) |>
-  filter(Total != 0)
+  filter(Total != 0) |> 
+  arrange(Kit_CRI, Detalle)
 
 kits_cris_list_trend_detail |>
   kbl() |>
@@ -589,7 +606,7 @@ kits_cris_list_trend_detail |>
 
 Cabe resaltar que se trata de datos indicativos basados en actividades pasadas, que no consideran eventuales nuevos eventos o decisiones operativas.
 
-Entre estos, los siguientes insumos podrían ser destinados a los socios:
+Entre estos, los siguientes insumos podrían ser destinados a los socios (únicamente en casos de más de 5 insumos):
 
 ```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
 
@@ -626,12 +643,17 @@ kits_cris_list_trend_detail_socios_max <- kits_cris_list_trend_detail_socios |>
   group_by(region, organizacion) |> 
   summarize(across(where(is.numeric), ~ 0), today = referencemax)
 
+
+
 ## Continuing the pipe: Trends by type of kits and CRIs and partners
 kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   ungroup() |> 
-  bind_rows(kits_cris_list_trend_detail_socios_min) |> 
-  bind_rows(kits_cris_list_trend_detail_socios_max) |> 
-  pad(interval = "day", group = "region") |> 
+  bind_rows(kits_cris_list_trend_detail_socios_min) |>
+  bind_rows(kits_cris_list_trend_detail_socios_max) |>
+  group_by(region, organizacion) |> 
+  complete(today = seq(min(today), max(today), by = "1 day")) %>%
+  # pad(interval = "day") |>
+  ungroup() |> 
   mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
@@ -645,6 +667,8 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
             list(~round(., digits = 0))) |> 
   pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+  filter(Total > 0) |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
   pivot_wider(names_from = region, values_from = Total) |> 
   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
@@ -661,13 +685,15 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   mutate_at(vars("Arequipa":"Tumbes"), as.numeric) |>
   mutate_at(vars("Arequipa":"Tumbes"), ~replace_na(.,0)) |>
   mutate(Total = rowSums(across("Arequipa":"Tumbes"))) |>
+  rename("Org." = organizacion) |>
   # mutate_at(vars("PE04":"PE24"), as.numeric) |>
   # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
   # mutate(Total = rowSums(across("PE04":"PE24"))) |>
-  filter(Total != 0)
+  filter(Total > 5) |> 
+  arrange(`Org.`, Kit_CRI, Detalle)
 
 kits_cris_list_trend_detail_socios |>
-  kable() |>
+  kbl() |>
   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 
@@ -746,6 +772,7 @@ rudah_ori_plot <- rudah_ori_plot |>
   dplyr::filter(grepl("ori_legal", tipo_orientacion) | grepl("ori_general", tipo_orientacion)) |> 
   tidyr::separate(tipo_orientacion, into = c("Ori1", "Ori2"), sep = "\\s") |> 
   pivot_longer(!region, names_to="Tipo", values_to="tipo_orientacion") |> 
+  filter(!is.na(tipo_orientacion)) |>
   select(region, tipo_orientacion) |> 
   mutate(tot = 1) |>
   dplyr::add_row(region = NA, tipo_orientacion = "ori_legal", tot = 0) |>
@@ -792,7 +819,7 @@ ggplot(rudah_ori_plot) +
     order = c(2, 3, 1)
   ) +
   labs(
-    title = "Asistencia brindada",
+    title = "Orientaciones brindadas",
     y = "Orientaciones brindadas",
     x = "Oficina de terreno",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"

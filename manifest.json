@@ -4803,26 +4803,17 @@
     }
   },
   "files": {
-    "main.xlsx": {
-      "checksum": "a7ab77006a267daf86df2f09eb9450a6"
-    },
-    "member2.xlsx": {
-      "checksum": "589c9a4357b954e8112bbea0c6bd1b03"
-    },
     "README.md": {
       "checksum": "a2e2393b2779f4bb054f7cedaf36426e"
     },
-    "rudah_plot.csv": {
-      "checksum": "bbbb423f96dd678ba37d83a9b1b79600"
-    },
     "Weekly_Data_Digest.html": {
-      "checksum": "f75d5c8762fec945c7b6138d7384f535"
+      "checksum": "980c612fa2f6dadaaca5e1bb73356354"
     },
     "Weekly_Data_Digest.pdf": {
       "checksum": "f1902b1320e0f953bc17a85597bbdb00"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "d55b4a7d0807785da20841f9a3d44071"
+      "checksum": "a94178f0a90f4897c5578dd8989900ca"
     }
   },
   "users": null
