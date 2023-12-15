@@ -200,6 +200,35 @@
         "Archs": "x64"
       }
     },
+    "RcppEigen": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "RcppEigen",
+        "Type": "Package",
+        "Title": "'Rcpp' Integration for the 'Eigen' Templated Linear Algebra\nLibrary",
+        "Version": "0.3.3.9.4",
+        "Date": "2023-11-01",
+        "Author": "Douglas Bates, Dirk Eddelbuettel, Romain Francois, and Yixuan Qiu;\n the authors of Eigen for the included version of Eigen",
+        "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
+        "Copyright": "See the file COPYRIGHTS for various Eigen copyright details",
+        "Description": "R and 'Eigen' integration using 'Rcpp'.\n 'Eigen' is a C++ template library for linear algebra: matrices, vectors,\n numerical solvers and related algorithms.  It supports dense and sparse\n matrices on integer, floating point and complex numbers, decompositions of\n such matrices, and solutions of linear systems. Its performance on many\n algorithms is comparable with some of the best implementations based on\n 'Lapack' and level-3 'BLAS'. The 'RcppEigen' package includes the header\n files from the 'Eigen' C++ template library. Thus users do not need to\n install 'Eigen' itself in order to use 'RcppEigen'. Since version 3.1.1,\n 'Eigen' is licensed under the Mozilla Public License (version 2); earlier\n version were licensed under the GNU LGPL version 3 or later. 'RcppEigen'\n (the 'Rcpp' bindings/bridge to 'Eigen') is licensed under the GNU GPL\n version 2 or later, as is the rest of 'Rcpp'.",
+        "License": "GPL (>= 2) | file LICENSE",
+        "LazyLoad": "yes",
+        "Depends": "R (>= 3.6.0)",
+        "LinkingTo": "Rcpp",
+        "Imports": "Rcpp (>= 0.11.0), stats, utils",
+        "Suggests": "Matrix, inline, tinytest, pkgKitten, microbenchmark",
+        "URL": "https://github.com/RcppCore/RcppEigen,\nhttps://dirk.eddelbuettel.com/code/rcpp.eigen.html",
+        "BugReports": "https://github.com/RcppCore/RcppEigen/issues",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-11-01 21:13:31 UTC; edd",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-11-02 22:30:09 UTC",
+        "Built": "R 4.3.2; x86_64-w64-mingw32; 2023-11-12 02:35:25 UTC; windows",
+        "Archs": "x64"
+      }
+    },
     "RcppSimdJson": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -574,6 +603,35 @@
         "Repository": "CRAN",
         "Date/Publication": "2016-07-27 03:17:48",
         "Built": "R 4.3.1; ; 2023-07-19 01:40:49 UTC; windows"
+      }
+    },
+    "chromote": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "chromote",
+        "Title": "Headless Chrome Web Browser Interface",
+        "Version": "0.1.2",
+        "Authors@R": "c(\n    person(\"Winston\", \"Chang\", , \"winston@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Barret\", \"Schloerke\", , \"barret@posit.co\", role = \"aut\",\n           comment = c(ORCID = \"0000-0001-9986-114X\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "An implementation of the 'Chrome DevTools Protocol', for\n    controlling a headless Chrome web browser.",
+        "License": "GPL-2",
+        "URL": "https://rstudio.github.io/chromote/,\nhttps://github.com/rstudio/chromote",
+        "BugReports": "https://github.com/rstudio/chromote/issues",
+        "Imports": "curl, fastmap, jsonlite, later (>= 1.1.0), magrittr, processx,\npromises (>= 1.1.1), R6, rlang, websocket (>= 1.2.0)",
+        "Suggests": "showimage, testthat (>= 3.0.0)",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "RoxygenNote": "7.2.3",
+        "SystemRequirements": "Google Chrome or other Chromium-based browser.\nchromium: chromium (rpm) or chromium-browser (deb)",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-08-11 20:25:41 UTC; garrick",
+        "Author": "Winston Chang [aut, cre],\n  Barret Schloerke [aut] (<https://orcid.org/0000-0001-9986-114X>),\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Winston Chang <winston@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-08-11 21:43:51 UTC",
+        "Built": "R 4.3.2; ; 2023-12-12 03:04:29 UTC; windows"
       }
     },
     "cli": {
@@ -1585,6 +1643,72 @@
         "RemoteSha": "0.2.0"
       }
     },
+    "ggfittext": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "ggfittext",
+        "Title": "Fit Text Inside a Box in 'ggplot2'",
+        "Version": "0.10.1",
+        "Authors@R": "c(person(\"David\", \"Wilkins\", email = \"david@wilkox.org\",\n                  role = c(\"aut\", \"cre\")), \n             person(\"Brady\", \"Johnston\", email = \"brady.johnston@me.com\", \n                  role = c(\"ctb\"))\n             )",
+        "Description": "A 'ggplot2' extension to fit text into a box by growing, shrinking or wrapping the text.",
+        "Depends": "R (>= 3.6)",
+        "License": "GPL-2",
+        "LazyData": "true",
+        "Imports": "grid (>= 3.1), stringi (>= 1.1.2), shades (>= 1.3.1), gridtext\n(>= 0.1.4), ggplot2 (>= 2.2.1)",
+        "RoxygenNote": "7.2.3",
+        "URL": "https://wilkox.org/ggfittext/",
+        "BugReports": "https://github.com/wilkox/ggfittext/issues/",
+        "Suggests": "knitr, rmarkdown, testthat (>= 3.0.0), vdiffr, spelling",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-GB",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-09-05 06:01:03 UTC; wilkox",
+        "Author": "David Wilkins [aut, cre],\n  Brady Johnston [ctb]",
+        "Maintainer": "David Wilkins <david@wilkox.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-09-05 11:50:14 UTC",
+        "Built": "R 4.3.2; ; 2023-12-14 04:18:16 UTC; windows"
+      }
+    },
+    "ggforce": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "ggforce",
+        "Type": "Package",
+        "Title": "Accelerating 'ggplot2'",
+        "Version": "0.4.1",
+        "Authors@R": "\n    c(person(given = \"Thomas Lin\",\n             family = \"Pedersen\",\n             role = c(\"cre\", \"aut\"),\n             email = \"thomasp85@gmail.com\",\n             comment = c(ORCID = \"0000-0002-5147-4711\")),\n      person(\"RStudio\",\n             role = \"cph\"))",
+        "Maintainer": "Thomas Lin Pedersen <thomasp85@gmail.com>",
+        "Description": "The aim of 'ggplot2' is to aid in visual data investigations. This\n    focus has led to a lack of facilities for composing specialised plots.\n    'ggforce' aims to be a collection of mainly new stats and geoms that fills\n    this gap. All additional functionality is aimed to come through the official\n    extension system so using 'ggforce' should be a stable experience.",
+        "URL": "https://ggforce.data-imaginist.com,\nhttps://github.com/thomasp85/ggforce",
+        "BugReports": "https://github.com/thomasp85/ggforce/issues",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "Depends": "ggplot2 (>= 3.3.6), R (>= 3.3.0)",
+        "Imports": "Rcpp (>= 0.12.2), grid, scales, MASS, tweenr (>= 0.1.5),\ngtable, rlang, polyclip, stats, grDevices, tidyselect, withr,\nutils, lifecycle, cli, vctrs, systemfonts",
+        "LinkingTo": "Rcpp, RcppEigen",
+        "RoxygenNote": "7.2.1",
+        "Suggests": "sessioninfo, concaveman, deldir, latex2exp, reshape2, units\n(>= 0.4-6), covr",
+        "Collate": "'RcppExports.R' 'aaa.R' 'shape.R' 'arc_bar.R' 'arc.R'\n'autodensity.R' 'autohistogram.R' 'autopoint.R' 'bezier.R'\n'bspline.R' 'bspline_closed.R' 'circle.R' 'diagonal.R'\n'diagonal_wide.R' 'ellipse.R' 'errorbar.R'\n'facet_grid_paginate.R' 'facet_matrix.R' 'facet_row.R'\n'facet_stereo.R' 'facet_wrap_paginate.R' 'facet_zoom.R'\n'ggforce-package.R' 'ggproto-classes.R' 'interpolate.R'\n'labeller.R' 'link.R' 'mark_circle.R' 'mark_ellipse.R'\n'mark_hull.R' 'mark_label.R' 'mark_rect.R' 'parallel_sets.R'\n'position-jitternormal.R' 'position_auto.R'\n'position_floatstack.R' 'regon.R' 'scale-depth.R'\n'scale-unit.R' 'sina.R' 'spiro.R' 'themes.R' 'trans.R'\n'trans_linear.R' 'utilities.R' 'voronoi.R' 'zzz.R'",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-10-03 12:36:36 UTC; thomas",
+        "Author": "Thomas Lin Pedersen [cre, aut]\n    (<https://orcid.org/0000-0002-5147-4711>),\n  RStudio [cph]",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-10-04 09:50:02 UTC",
+        "Built": "R 4.3.2; x86_64-w64-mingw32; 2023-11-12 04:01:13 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "ggforce",
+        "RemoteRef": "ggforce",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "0.4.1"
+      }
+    },
     "ggplot2": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -1615,6 +1739,40 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-10-12 11:40:02 UTC",
         "Built": "R 4.3.2; ; 2023-11-12 03:39:40 UTC; windows"
+      }
+    },
+    "ggtext": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "ggtext",
+        "Type": "Package",
+        "Title": "Improved Text Rendering Support for 'ggplot2'",
+        "Version": "0.1.2",
+        "Authors@R": "\n    c(\n      person(\n        given = \"Claus O.\",\n        family = \"Wilke\",\n        role = c(\"aut\"),\n        email = \"wilke@austin.utexas.edu\",\n        comment = c(ORCID = \"0000-0002-7470-9261\")\n      ),\n      person(\n        given = \"Brenton M.\",\n        family = \"Wiernik\",\n        role = c(\"aut\", \"cre\"),\n        email = \"brenton@wiernik.org\",\n        comment = c(ORCID = \"0000-0001-9560-6336\", Twitter = \"@bmwiernik\")\n      )\n    )",
+        "Description": "A 'ggplot2' extension that enables the rendering of\n    complex formatted plot labels (titles, subtitles, facet labels,\n    axis labels, etc.). Text boxes with automatic word wrap are also\n    supported.",
+        "URL": "https://wilkelab.org/ggtext/",
+        "BugReports": "https://github.com/wilkelab/ggtext/issues",
+        "License": "GPL-2",
+        "Depends": "R (>= 3.5)",
+        "Imports": "ggplot2 (>= 3.3.0), grid, gridtext, rlang, scales",
+        "Suggests": "cowplot, dplyr, glue, knitr, rmarkdown, testthat, vdiffr",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.1.1",
+        "VignetteBuilder": "knitr",
+        "NeedsCompilation": "no",
+        "Packaged": "2022-09-15 13:50:50 UTC; brentonw",
+        "Author": "Claus O. Wilke [aut] (<https://orcid.org/0000-0002-7470-9261>),\n  Brenton M. Wiernik [aut, cre] (<https://orcid.org/0000-0001-9560-6336>,\n    @bmwiernik)",
+        "Maintainer": "Brenton M. Wiernik <brenton@wiernik.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-09-16 11:36:07 UTC",
+        "Built": "R 4.3.2; ; 2023-11-12 04:01:43 UTC; windows",
+        "RemoteType": "standard",
+        "RemotePkgRef": "ggtext",
+        "RemoteRef": "ggtext",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "i386+x86_64-w64-mingw32",
+        "RemoteSha": "0.1.2"
       }
     },
     "gh": {
@@ -1765,6 +1923,42 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-06-11 04:00:02 UTC",
         "Built": "R 4.3.1; ; 2023-07-19 02:02:26 UTC; windows"
+      }
+    },
+    "gridtext": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "gridtext",
+        "Type": "Package",
+        "Title": "Improved Text Rendering Support for 'Grid' Graphics",
+        "Version": "0.1.5",
+        "Authors@R": "\n    c(\n      person(\n        given = \"Claus O.\",\n        family = \"Wilke\",\n        role = c(\"aut\"),\n        email = \"wilke@austin.utexas.edu\",\n        comment = c(ORCID = \"0000-0002-7470-9261\")\n      ),\n      person(\n        given = \"Brenton M.\",\n        family = \"Wiernik\",\n        role = c(\"aut\", \"cre\"),\n        email = \"brenton@wiernik.org\",\n        comment = c(ORCID = \"0000-0001-9560-6336\", Twitter = \"@bmwiernik\")\n      )\n    )",
+        "Description": "Provides support for rendering of formatted text using 'grid' graphics. Text can be\n    formatted via a minimal subset of 'Markdown', 'HTML', and inline 'CSS' directives, and it can be\n    rendered both with and without word wrap.",
+        "URL": "https://wilkelab.org/gridtext/",
+        "BugReports": "https://github.com/wilkelab/gridtext/issues",
+        "License": "MIT + file LICENSE",
+        "Depends": "R (>= 3.5)",
+        "Imports": "curl, grid, grDevices, markdown, rlang, Rcpp, png, jpeg,\nstringr, xml2",
+        "Suggests": "covr, knitr, rmarkdown, testthat, vdiffr",
+        "LinkingTo": "Rcpp",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.1.1",
+        "SystemRequirements": "C++11",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-09-15 13:49:42 UTC; brentonw",
+        "Author": "Claus O. Wilke [aut] (<https://orcid.org/0000-0002-7470-9261>),\n  Brenton M. Wiernik [aut, cre] (<https://orcid.org/0000-0001-9560-6336>,\n    @bmwiernik)",
+        "Maintainer": "Brenton M. Wiernik <brenton@wiernik.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-09-16 11:16:15 UTC",
+        "Built": "R 4.3.2; x86_64-w64-mingw32; 2023-11-12 03:20:42 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "gridtext",
+        "RemoteRef": "gridtext",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "0.1.5"
       }
     },
     "gtable": {
@@ -2144,6 +2338,35 @@
         "Archs": "x64"
       }
     },
+    "jpeg": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "jpeg",
+        "Version": "0.1-10",
+        "Title": "Read and write JPEG images",
+        "Author": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Depends": "R (>= 2.9.0)",
+        "Description": "This package provides an easy and simple way to read, write and display bitmap images stored in the JPEG format. It can read and write both files and in-memory raw vectors.",
+        "License": "GPL-2 | GPL-3",
+        "SystemRequirements": "libjpeg",
+        "URL": "https://www.rforge.net/jpeg/",
+        "BugReports": "https://github.com/s-u/jpeg/issues",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-11-29 09:23:09 UTC; rforge",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-11-29 11:12:52 UTC",
+        "Built": "R 4.3.1; x86_64-w64-mingw32; 2023-10-20 00:52:28 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "jpeg",
+        "RemoteRef": "jpeg",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "0.1-10"
+      }
+    },
     "jquerylib": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2502,6 +2725,34 @@
         "Date/Publication": "2022-03-30 07:30:09 UTC",
         "Built": "R 4.3.1; x86_64-w64-mingw32; 2023-07-19 00:09:11 UTC; windows",
         "Archs": "x64"
+      }
+    },
+    "markdown": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "markdown",
+        "Type": "Package",
+        "Title": "Render Markdown with 'commonmark'",
+        "Version": "1.7",
+        "Authors@R": "c(\n   person(\"Yihui\", \"Xie\", role = c(\"aut\", \"cre\"), email = \"xie@yihui.name\", comment = c(ORCID = \"0000-0003-0645-5666\")),\n   person(\"JJ\", \"Allaire\", role = \"aut\"),\n   person(\"Jeffrey\", \"Horner\", role = \"aut\"),\n   person(\"Henrik\", \"Bengtsson\", role = \"ctb\"),\n   person(\"Jim\", \"Hester\", role = \"ctb\"),\n   person(\"Yixuan\", \"Qiu\", role = \"ctb\"),\n   person(\"Kohske\", \"Takahashi\", role = \"ctb\"),\n   person(\"Adam\", \"November\", role = \"ctb\"),\n   person(\"Nacho\", \"Caballero\", role = \"ctb\"),\n   person(\"Jeroen\", \"Ooms\", role = \"ctb\"),\n   person(\"Thomas\", \"Leeper\", role = \"ctb\"),\n   person(\"Joe\", \"Cheng\", role = \"ctb\"),\n   person(\"Andrzej\", \"Oles\", role = \"ctb\"),\n   person(given = \"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n   )",
+        "Description": "Render Markdown to full and lightweight HTML/LaTeX documents with\n    the 'commonmark' package. It also supports features that are missing in\n    'commonmark', such as raw HTML/LaTeX blocks, LaTeX math, superscripts,\n    subscripts, footnotes, element attributes, appendices, and fenced 'Divs'.\n    With additional JavaScript and CSS, it can also create HTML slides and\n    articles.",
+        "Depends": "R (>= 2.11.1)",
+        "Imports": "utils, commonmark (>= 1.9.0), xfun (>= 0.38)",
+        "Suggests": "knitr, rmarkdown (>= 2.18), yaml, RCurl",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/rstudio/markdown",
+        "BugReports": "https://github.com/rstudio/markdown/issues",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.2.3",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-05-16 04:10:01 UTC; yihui",
+        "Author": "Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>),\n  JJ Allaire [aut],\n  Jeffrey Horner [aut],\n  Henrik Bengtsson [ctb],\n  Jim Hester [ctb],\n  Yixuan Qiu [ctb],\n  Kohske Takahashi [ctb],\n  Adam November [ctb],\n  Nacho Caballero [ctb],\n  Jeroen Ooms [ctb],\n  Thomas Leeper [ctb],\n  Joe Cheng [ctb],\n  Andrzej Oles [ctb],\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Yihui Xie <xie@yihui.name>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-05-16 10:00:03 UTC",
+        "Built": "R 4.3.1; ; 2023-07-23 00:28:35 UTC; windows"
       }
     },
     "memoise": {
@@ -2879,6 +3130,66 @@
         "Repository": "CRAN",
         "Date/Publication": "2019-09-22 09:20:02 UTC",
         "Built": "R 4.3.1; ; 2023-07-19 00:09:11 UTC; windows"
+      }
+    },
+    "png": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "png",
+        "Version": "0.1-8",
+        "Title": "Read and write PNG images",
+        "Author": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Maintainer": "Simon Urbanek <Simon.Urbanek@r-project.org>",
+        "Depends": "R (>= 2.9.0)",
+        "Description": "This package provides an easy and simple way to read, write and display bitmap images stored in the PNG format. It can read and write both files and in-memory raw vectors.",
+        "License": "GPL-2 | GPL-3",
+        "SystemRequirements": "libpng",
+        "URL": "http://www.rforge.net/png/",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-11-29 09:42:31 UTC; rforge",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-11-29 11:12:53 UTC",
+        "Built": "R 4.3.1; x86_64-w64-mingw32; 2023-10-20 00:51:52 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "png",
+        "RemoteRef": "png",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "0.1-8"
+      }
+    },
+    "polyclip": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "polyclip",
+        "Version": "1.10-6",
+        "Date": "2023-09-27",
+        "Title": "Polygon Clipping",
+        "Authors@R": "c(person(\"Angus\", \"Johnson\", role = \"aut\", \n   \t    comment=\"C++ original, http://www.angusj.com/delphi/clipper.php\"),\n\t     person(\"Adrian\", \"Baddeley\", role = c(\"aut\", \"trl\", \"cre\"),\n\t\t     email = \"Adrian.Baddeley@curtin.edu.au\"),\n\t     person(\"Kurt\", \"Hornik\", role = \"ctb\"),\n\t     person(c(\"Brian\", \"D.\"), \"Ripley\", role = \"ctb\"),\n\t     person(\"Elliott\", \"Sales de Andrade\", role=\"ctb\"),\n\t     person(\"Paul\", \"Murrell\", role = \"ctb\"),\n\t     person(\"Ege\", \"Rubak\", role=\"ctb\"),\n\t     person(\"Mark\", \"Padgham\", role=\"ctb\"))",
+        "Maintainer": "Adrian Baddeley <Adrian.Baddeley@curtin.edu.au>",
+        "Depends": "R (>= 3.0.0)",
+        "Description": "R port of Angus Johnson's open source library 'Clipper'. Performs polygon clipping operations (intersection, union, set minus, set difference) for polygonal regions of arbitrary complexity, including holes. Computes offset polygons (spatial buffer zones, morphological dilations, Minkowski dilations) for polygonal regions and polygonal lines. Computes Minkowski Sum of general polygons. There is a function for removing self-intersections from polygon data.",
+        "License": "BSL",
+        "URL": "http://www.angusj.com/delphi/clipper.php,\nhttps://sourceforge.net/projects/polyclipping,\nhttps://github.com/baddstats/polyclip",
+        "BugReports": "https://github.com/baddstats/polyclip/issues",
+        "ByteCompile": "true",
+        "Note": "built from Clipper C++ version 6.4.0",
+        "NeedsCompilation": "yes",
+        "Packaged": "2023-09-27 11:07:23 UTC; adrian",
+        "Author": "Angus Johnson [aut] (C++ original,\n    http://www.angusj.com/delphi/clipper.php),\n  Adrian Baddeley [aut, trl, cre],\n  Kurt Hornik [ctb],\n  Brian D. Ripley [ctb],\n  Elliott Sales de Andrade [ctb],\n  Paul Murrell [ctb],\n  Ege Rubak [ctb],\n  Mark Padgham [ctb]",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-09-27 11:40:06 UTC",
+        "Built": "R 4.3.1; x86_64-w64-mingw32; 2023-10-20 00:52:37 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "polyclip",
+        "RemoteRef": "polyclip",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "1.10-6"
       }
     },
     "prettyunits": {
@@ -3454,7 +3765,7 @@
         "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
         "Repository": "CRAN",
         "Date/Publication": "2022-08-19 22:30:08 UTC",
-        "Built": "R 4.3.1; ; 2023-07-19 01:40:42 UTC; windows"
+        "Built": "R 4.3.2; ; 2023-12-12 03:39:27 UTC; windows"
       }
     },
     "rvg": {
@@ -3575,7 +3886,7 @@
         "Maintainer": "Simon Potter <simon@sjp.co.nz>",
         "Repository": "CRAN",
         "Date/Publication": "2019-11-20 07:30:03 UTC",
-        "Built": "R 4.3.1; ; 2023-07-19 01:34:17 UTC; windows"
+        "Built": "R 4.3.2; ; 2023-12-12 03:33:41 UTC; windows"
       }
     },
     "servr": {
@@ -3609,6 +3920,31 @@
         "RemoteRepos": "https://cran.rstudio.com/",
         "RemotePkgPlatform": "i386+x86_64-w64-mingw32",
         "RemoteSha": "0.27"
+      }
+    },
+    "shades": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "shades",
+        "Version": "1.4.0",
+        "Date": "2019-08-02",
+        "Title": "Simple Colour Manipulation",
+        "Author": "Jon Clayden",
+        "Maintainer": "Jon Clayden <code@clayden.org>",
+        "Description": "Functions for easily manipulating colours, creating colour scales and calculating colour distances.",
+        "Suggests": "testthat, covr, ggplot2",
+        "Enhances": "colorspace",
+        "Encoding": "UTF-8",
+        "License": "BSD_3_clause + file LICENCE",
+        "URL": "https://github.com/jonclayden/shades",
+        "BugReports": "https://github.com/jonclayden/shades/issues",
+        "RoxygenNote": "6.1.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2019-08-02 14:53:11 UTC; jon",
+        "Repository": "CRAN",
+        "Date/Publication": "2019-08-02 16:00:02 UTC",
+        "Built": "R 4.3.2; ; 2023-12-14 02:14:07 UTC; windows"
       }
     },
     "shiny": {
@@ -4115,6 +4451,35 @@
         "Built": "R 4.3.2; ; 2023-11-12 02:35:29 UTC; windows"
       }
     },
+    "treemapify": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "treemapify",
+        "Title": "Draw Treemaps in 'ggplot2'",
+        "Version": "2.5.6",
+        "Authors@R": "c(\n  person(\"David\", \"Wilkins\", , \"david@wilkox.org\", role = c(\"aut\", \"cre\"),\n         comment = c(ORCID = \"0000-0002-3385-8981\")),\n  person(\"Bob\", \"Rudis\", , \"bob@rud.is\", role = c(\"ctb\"),\n         comment = c(ORCID = \"0000-0001-5670-2640\"))\n  )",
+        "URL": "https://wilkox.org/treemapify/",
+        "BugReports": "https://github.com/wilkox/treemapify/issues/",
+        "Description": "Provides 'ggplot2' geoms for drawing treemaps.",
+        "Depends": "R (>= 3.6)",
+        "Imports": "ggplot2 (>= 2.2.1), ggfittext (>= 0.5.0), grid (>= 3.1), cli\n(>= 3.6.1)",
+        "Suggests": "knitr, rmarkdown, testthat, vdiffr, spelling",
+        "License": "GPL (>= 3)",
+        "LazyData": "true",
+        "RoxygenNote": "7.2.3",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Language": "en-GB",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-09-30 07:12:19 UTC; wilkox",
+        "Author": "David Wilkins [aut, cre] (<https://orcid.org/0000-0002-3385-8981>),\n  Bob Rudis [ctb] (<https://orcid.org/0000-0001-5670-2640>)",
+        "Maintainer": "David Wilkins <david@wilkox.org>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-09-30 07:40:02 UTC",
+        "Built": "R 4.3.2; ; 2023-12-14 04:28:50 UTC; windows"
+      }
+    },
     "triebeard": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -4142,6 +4507,42 @@
         "Date/Publication": "2023-03-04 23:30:07 UTC",
         "Built": "R 4.3.1; x86_64-w64-mingw32; 2023-08-24 01:46:17 UTC; windows",
         "Archs": "x64"
+      }
+    },
+    "tweenr": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "tweenr",
+        "Type": "Package",
+        "Title": "Interpolate Data for Smooth Animations",
+        "Version": "2.0.2",
+        "Authors@R": "\n    c(person(given = \"Thomas Lin\",\n             family = \"Pedersen\",\n             role = c(\"aut\", \"cre\"),\n             email = \"thomasp85@gmail.com\",\n             comment = c(ORCID = \"0000-0002-5147-4711\")))",
+        "Maintainer": "Thomas Lin Pedersen <thomasp85@gmail.com>",
+        "Description": "In order to create smooth animation between states of data,\n    tweening is necessary. This package provides a range of functions for\n    creating tweened data that can be used as basis for animation. Furthermore \n    it adds a number of vectorized interpolaters for common R data \n    types such as numeric, date and colour.",
+        "URL": "https://github.com/thomasp85/tweenr",
+        "BugReports": "https://github.com/thomasp85/tweenr/issues",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "Depends": "R (>= 3.2.0)",
+        "Imports": "farver, magrittr, rlang, vctrs",
+        "LinkingTo": "cpp11 (>= 0.4.2)",
+        "RoxygenNote": "7.2.1",
+        "Suggests": "testthat, covr",
+        "SystemRequirements": "C++11",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-09-06 07:43:28 UTC; thomas",
+        "Author": "Thomas Lin Pedersen [aut, cre]\n    (<https://orcid.org/0000-0002-5147-4711>)",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-09-06 08:00:02 UTC",
+        "Built": "R 4.3.2; x86_64-w64-mingw32; 2023-11-12 03:20:07 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemotePkgRef": "tweenr",
+        "RemoteRef": "tweenr",
+        "RemoteRepos": "https://cran.rstudio.com/",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "2.0.2"
       }
     },
     "tzdb": {
@@ -4521,6 +4922,33 @@
         "RemoteSha": "0.5.5"
       }
     },
+    "webshot2": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "webshot2",
+        "Title": "Take Screenshots of Web Pages",
+        "Version": "0.1.1",
+        "Authors@R": "c(\n    person(\"Winston\", \"Chang\", , \"winston@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Barret\", \"Schloerke\", , \"barret@posit.co\", role = \"ctb\",\n           comment = c(ORCID = \"0000-0001-9986-114X\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "Takes screenshots of web pages, including Shiny applications\n    and R Markdown documents. 'webshot2' uses headless Chrome or Chromium\n    as the browser back-end.",
+        "License": "GPL-2",
+        "URL": "https://rstudio.github.io/webshot2/,\nhttps://github.com/rstudio/webshot2",
+        "BugReports": "https://github.com/rstudio/webshot2/issues",
+        "Depends": "R (>= 3.2)",
+        "Imports": "callr, chromote (>= 0.1.0), later, magrittr, promises",
+        "Suggests": "httpuv, rmarkdown, shiny",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-08-11 21:17:46 UTC; garrick",
+        "Author": "Winston Chang [aut, cre],\n  Barret Schloerke [ctb] (<https://orcid.org/0000-0001-9986-114X>),\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Winston Chang <winston@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-08-11 22:00:02 UTC",
+        "Built": "R 4.3.2; ; 2023-12-12 03:05:49 UTC; windows"
+      }
+    },
     "websocket": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -4803,17 +5231,32 @@
     }
   },
   "files": {
+    "dtm.png": {
+      "checksum": "55550c56fbcc290b3e9462a019eb6c4e"
+    },
+    "dtm2.png": {
+      "checksum": "ca2a4ef627be73ad1d647e081c5601e3"
+    },
+    "leaflet-viewport.png": {
+      "checksum": "e2d66ae104791920147c1332348da38e"
+    },
     "README.md": {
       "checksum": "a2e2393b2779f4bb054f7cedaf36426e"
     },
+    "rudah_diario.xlsx": {
+      "checksum": "6e83c394c99ac9861a8ae43867312cb5"
+    },
+    "token.rds": {
+      "checksum": "0de976540f95b889bb052871a37e02aa"
+    },
     "Weekly_Data_Digest.html": {
-      "checksum": "980c612fa2f6dadaaca5e1bb73356354"
+      "checksum": "93b69f55ed521661049a5d902cb9166d"
     },
     "Weekly_Data_Digest.pdf": {
-      "checksum": "f1902b1320e0f953bc17a85597bbdb00"
+      "checksum": "6d4005f31bc6067a81205c01f3be42c3"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "a94178f0a90f4897c5578dd8989900ca"
+      "checksum": "491f75f7f6e596a462ebacf3362fb75c"
     }
   },
   "users": null

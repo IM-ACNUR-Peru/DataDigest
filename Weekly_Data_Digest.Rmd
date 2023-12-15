@@ -2,9 +2,27 @@
 title: "Weekly Data Digest"
 author: IM ACNUR Peru
 output: unhcrdown::paged_simple
-#knit: pagedown::chrome_print
+knit: pagedown::chrome_print
 
 ---
+
+<style type="text/css">
+
+body, td {
+   font-size: 12px;
+}
+code.r{
+  font-size: 10px;
+}
+pre {
+  font-size: 10px
+}
+
+   .main-container {max-width: 100%;}
+   .row {display: flex;}
+   .column {flex: 50%;}
+
+</style>
 
 
 ```{r setup, include=FALSE}
@@ -18,6 +36,11 @@ library(unhcrthemes)
 library(scales)
 library(directlabels)
 library(labelled)
+library(knitr)
+library(kableExtra)
+library(treemapify)
+
+#load("token.rds")
 
 date_start_filter <- Sys.Date() - 7
 
@@ -56,12 +79,14 @@ main_last_week_puno <- main_last_week |>
   filter(lugar_monitoreo == "puno")
 
 
-# # MasterFile Excel on SharePoint
+# MasterFile Excel on SharePoint
 # library(Microsoft365R)# Get your SharePoint site
-# 
-# # Replace "My Site" to your SharePoint site
+
+# Replace "My Site" to your SharePoint site
 # my_site_url="https://unhcr365.sharepoint.com/teams/amer-peria/"
-# app = Sys.getenv('SHAREPOINT_KEY')
+#app = Sys.getenv('SHAREPOINT_KEY')
+# app = read_rds("token.rds")
+# 
 # 
 # #pass error?
 # site <- get_sharepoint_site(site_url = my_site_url, app = app)
@@ -74,10 +99,10 @@ main_last_week_puno <- main_last_week |>
 # # download your file in the current diretory
 # drv$download_file("MyE ACNUR/5. IM Products/Dashboard Situacion Peru/MasterFile.xlsx",overwrite = TRUE)
 # 
-# DTM <- read_excel("MasterFile.xlsx", sheet="DTM", skip=0 ) 
-#   
+# DTM <- read_excel("MasterFile.xlsx", sheet="DTM", skip=0 )
+# 
 # file.remove("MasterFile.xlsx")
-
+# 
 
 
 ```
@@ -85,6 +110,44 @@ main_last_week_puno <- main_last_week |>
 
 Boletín semanal para la operación ACNUR Perú.
 
+## Flujos en frontera
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.width=7,fig.height=2.7}
+
+library(webshot2)
+library(png)
+
+img <- webshot2::webshot(url = "https://app.powerbi.com/view?r=eyJrIjoiMjlmZjcyNzYtODI5Yy00NzQ2LWIwZTItZjczMWM0OTI3NGU1IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9", 
+                             "dtm.png", delay = 10, zoom = 2)
+
+img <- readPNG("dtm.png")
+
+# Define the cropping coordinates
+x_start <- 0  # starting x-coordinate
+y_start <- 160   # starting y-coordinate
+width <- 1970    # width of the cropped region
+height <- 1000   # height of the cropped region
+
+# Crop the image
+cropped_img <- img[y_start:(y_start + height - 1), x_start:(x_start + width - 1), ]
+
+# Save the cropped image (optional)
+writePNG(cropped_img, "dtm.png")
+
+
+```
+
+
+![](dtm.png){height=90%}
+
+Dashboard DTM de conteos en frontera: [](https://app.powerbi.com/view?r=eyJrIjoiMjlmZjcyNzYtODI5Yy00NzQ2LWIwZTItZjczMWM0OTI3NGU1IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
+
+Se preparará proximamente una visualización de los flujos observados directamente en este reporte.
+
+Para más información, consultar el [dashboard de estadísticas poblacionales](https://app.powerbi.com/links/xEqM6jT2c9?ctid=e5c37981-6664-4134-8a0c-6543d2af80be) (pestaña "Flujos Irregulares").
+
+\newpage
 ## Monitoreo de fronteras
 
 Durante la semana pasada se entrevistaron `r nrow(main_last_week)` grupos (`r sum(main_last_week$miembros)` personas). Entre ellos, `r nrow(main_last_week_tumbes)` en Tumbes, `r nrow(main_last_week_tacna)` en Tacna, `r nrow(main_last_week_puno)` en Puno, y `r nrow(main_last_week_mdd)` en Madre de Dios.  
@@ -102,33 +165,75 @@ main_last_week_chart_previo <- main_last_week |>
   summarise(total = n()) |> 
   group_by(lugar_monitoreo) |> 
   mutate(percent = total/sum(total)) |> 
-  ungroup() |> 
-  select(paisprevio, lugar_monitoreo, percent) 
+  ungroup() 
+#  select(paisprevio, lugar_monitoreo, percent) 
 
 
 #glimpse(main_last_week_chart_previo)
 
 #ymax_previo <- ifelse(max(main_last_week_chart_previo$total) / sum(main_last_week_chart_previo$total) > 0.89, 1, max(main_last_week_chart_previo$total) / sum(main_last_week_chart_previo$total) + 0.1)
+# 
+# 
+# ggplot(main_last_week_chart_previo, aes(x = reorder(paisprevio, -percent), y = percent)) +
+#   geom_col(
+#            fill = unhcr_pal(n = 1, "pal_blue"),
+#            width = 0.8) +
+#    geom_text(aes(label = paste0( round(percent*100, 0), "%" )), vjust = 1.5, colour = "white", size = 5) +
+#   labs(title = "Principales paises de procedencia",
+#        y = "Personas entrevistadas",
+#        caption = "Fuente: Monitoreo de Fronteras de ACNUR") +
+#   scale_y_continuous(labels=scales::percent) +
+#   coord_cartesian(ylim = c(0.0, 1)) + 
+#  # scale_x_continuous(breaks = pretty_breaks(10)) +
+#  theme_unhcr(font_size = 14,
+#     grid = FALSE,
+#     axis = FALSE,
+#     axis_title = FALSE,
+#     axis_text = "x"
+#   ) +
+#   facet_grid(~ lugar_monitoreo, scales='free', space='free') 
 
 
-ggplot(main_last_week_chart_previo, aes(x = reorder(paisprevio, -percent), y = percent)) +
-  geom_col(
-           fill = unhcr_pal(n = 1, "pal_blue"),
-           width = 0.8) +
-   geom_text(aes(label = paste0( round(percent*100, 0), "%" )), vjust = 1.5, colour = "white") +
-  labs(title = "Principales paises de procedencia",
-       y = "Personas entrevistadas",
-       caption = "Fuente: Monitoreo de Fronteras de ACNUR") +
-  scale_y_continuous(labels=scales::percent) +
-  coord_cartesian(ylim = c(0.0, 1)) + 
- # scale_x_continuous(breaks = pretty_breaks(10)) +
- theme_unhcr(font_size = 11,
-    grid = FALSE,
+
+# Plot
+ggplot(
+  main_last_week_chart_previo,
+  aes(area = total,
+  subgroup = lugar_monitoreo)) +
+  geom_treemap(
+    color = "#FFFFFF",
+    size = 1,
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    start = "topleft"
+  ) +
+  geom_treemap_text(aes(label = paste0(
+    round(percent * 100, 1),
+    "%\n",
+    paisprevio
+  )),
+  color = "#FFFFFF",
+  size = 16,
+  start = "topleft",
+  family = "Lato"
+  ) +
+  labs(
+    title = "Principales paises de procedencia",
+    caption = "Fuente: Monitoreo de Fronteras de ACNUR"
+  ) +
+  theme_unhcr(
     axis = FALSE,
     axis_title = FALSE,
-    axis_text = "x"
+    grid = FALSE,
+    font_size = 20
   ) +
-  facet_grid(~ lugar_monitoreo, scales='free', space='free') 
+  geom_treemap_subgroup_border(colour = "white", size = 4) +
+  # geom_treemap_subgroup_text(place = "bottom",
+  #                            grow = F,
+  #                            alpha = 0.6,
+  #                            colour = "#FAFAFA",
+  #                            min.size = 0,
+  #                            max.size = 5) 
+ facet_wrap( ~ lugar_monitoreo)
 
 
 ```
@@ -144,36 +249,76 @@ main_last_week_chart_destino <- main_last_week |>
   summarise(total = n()) |> 
   group_by(lugar_monitoreo) |> 
   mutate(percent = total/sum(total)) |> 
-  ungroup() |> 
-  select(paisdestino, lugar_monitoreo, percent) 
+  ungroup() 
+#  select(paisdestino, lugar_monitoreo, percent) 
 
 
 #glimpse(main_last_week_chart_destino)
 
 #ymax_destino <- ifelse(max(main_last_week_chart_destino$total) / sum(main_last_week_chart_destino$total) > 0.89, 1, max(main_last_week_chart_destino$total) / sum(main_last_week_chart_destino$total) + 0.1)
 
+# 
+# 
+# ggplot(main_last_week_chart_destino, aes(x = reorder(paisdestino, -percent), y = percent)) +
+#   geom_col(
+#            fill = unhcr_pal(n = 1, "pal_blue"),
+#            width = 0.8) +
+#    geom_text(aes(label = paste0( round(percent*100, 0), "%" )), vjust = 1.5, colour = "white", size = 5) +
+#   labs(title = "Principales paises de destino",
+#        y = "Personas entrevistadas",
+#        caption = "Fuente: Monitoreo de Fronteras de ACNUR") +
+#   scale_y_continuous(labels=scales::percent) +
+#   coord_cartesian(ylim = c(0.0, 1)) + 
+#  # scale_x_continuous(breaks = pretty_breaks(10)) +
+#  theme_unhcr(font_size = 14,
+#     grid = FALSE,
+#     axis = FALSE,
+#     axis_title = FALSE,
+#     axis_text = "x"
+#   ) +
+#   facet_grid(~ lugar_monitoreo, scales='free', space='free') 
 
 
-ggplot(main_last_week_chart_destino, aes(x = reorder(paisdestino, -percent), y = percent)) +
-  geom_col(
-           fill = unhcr_pal(n = 1, "pal_blue"),
-           width = 0.8) +
-   geom_text(aes(label = paste0( round(percent*100, 0), "%" )), vjust = 1.5, colour = "white") +
-  labs(title = "Principales paises de destino",
-       y = "Personas entrevistadas",
-       caption = "Fuente: Monitoreo de Fronteras de ACNUR") +
-  scale_y_continuous(labels=scales::percent) +
-  coord_cartesian(ylim = c(0.0, 1)) + 
- # scale_x_continuous(breaks = pretty_breaks(10)) +
- theme_unhcr(font_size = 11,
-    grid = FALSE,
+
+# Plot
+ggplot(
+  main_last_week_chart_destino,
+  aes(area = total,
+  subgroup = lugar_monitoreo)) +
+  geom_treemap(
+    color = "#FFFFFF",
+    size = 1,
+    fill = unhcr_pal(n = 1, "pal_blue"),
+    start = "topleft"
+  ) +
+  geom_treemap_text(aes(label = paste0(
+    round(percent * 100, 1),
+    "%\n",
+    paisdestino
+  )),
+  color = "#FFFFFF",
+  size = 16,
+  start = "topleft",
+  family = "Lato"
+  ) +
+  labs(
+    title = "Principales paises de destino",
+    caption = "Fuente: Monitoreo de Fronteras de ACNUR"
+  ) +
+  theme_unhcr(
     axis = FALSE,
     axis_title = FALSE,
-    axis_text = "x"
+    grid = FALSE,
+    font_size = 20
   ) +
-  facet_grid(~ lugar_monitoreo, scales='free', space='free') 
-
-
+  geom_treemap_subgroup_border(colour = "white", size = 4) +
+  # geom_treemap_subgroup_text(place = "bottom",
+  #                            grow = F,
+  #                            alpha = 0.6,
+  #                            colour = "#FAFAFA",
+  #                            min.size = 0,
+  #                            max.size = 5) 
+ facet_wrap( ~ lugar_monitoreo)
 
 
 ```
@@ -183,10 +328,12 @@ Para más información, consultar el [dashboard de monitoreo de fronteras](https
 
 
 
+\newpage
+## Distribuciones durante los últimos 7 días
 
-## Respuesta en curso: Kits y CRIs distribuidos
-
-```{r , echo=FALSE, warning=FALSE}
+<div class = "row">
+<div class = "column">
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
 
 rudah <- main |> 
   dplyr::filter(today > date_start_filter) 
@@ -227,16 +374,96 @@ personas_kits_cris <- rudah |>
   rowSums() |> 
   sum()
 
+# Loading required packages
+library(ggtext)
+library(ggforce)
+
+kits_cris_plot <- data.frame(total_cris, total_kits) |> 
+  rename("CRI" = total_cris) |>
+  rename("Kits" = total_kits) |>
+  pivot_longer(cols = CRI:Kits, names_to = "Type", values_to = "Total")
+
+
+# Plot total CRIs and Kits
+ggplot(kits_cris_plot) +
+  geom_arc_bar(aes(
+    x0 = 0,
+    y0 = 0,
+    r0 = 0.6,
+    r = 1,
+    amount = Total,
+    fill = Type
+  ),
+  stat = "pie",
+  size = 1,
+  color = "#FFFFFF"
+  ) +
+  geom_richtext(
+    x = c(1.25, -1.25),
+    y = c(-0.3, 0.3),
+    aes(label = paste0(
+      Type,
+      "<br><strong> ",
+      round(Total, 0),
+      "</strong>", "<br>",
+      round(100 * Total / sum(Total), 1),
+      "%"
+    )),
+    size = 12,
+    fill = NA,
+    label.color = NA
+  ) +
+  geom_richtext(
+    x = 0,
+    y = 0,
+    label = paste0(
+      "Total distribuido",
+      "<br><strong>",
+      round(sum(kits_cris_plot$Total), 0),
+      "</strong>"
+    ),
+    size = 12,
+    fill = NA,
+    label.color = NA
+  ) +
+  labs(
+    title = "Kits y CRIs distribuidos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_fill_unhcr_d(
+    palette = "pal_unhcr",
+    direction = -1
+  ) +
+  scale_x_continuous(expand = expansion(c(0.3, 0.5))) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    axis_text = FALSE,
+    legend = FALSE,
+    font_size = 30
+  )
+
 
 
 ```
+</div>
+
+<div class = "column">
+
 
 Durante la última semana, la operación distribuyó `r total_kits` Kits y `r total_cris` CRIs, asistiendo a un total de `r personas_kits_cris` personas (`r personas_kits` personas recibieron kits y `r personas_cris` recibieron CRIs).
 
+</div>
+</div>
 
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+<div class = "row">
+
+<div class = "column">
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
 
 
+## Preparing totals by region
 names_lug <- c('region')
 rudah[,names_lug] <- lapply(rudah[,names_lug] , to_factor)
 
@@ -251,29 +478,204 @@ rudah_kits_cris_plot <- rudah |>
 
 rudah_kits_cris_plot <- mutate(rudah_kits_cris_plot, region = fct_reorder(region, -Total, sum))
 
-rudah_kits_cris_plot_ymax <- max(rudah_kits_cris_plot$Total)*1.1
+cris_region <- rudah_kits_cris_plot |> 
+  filter(Tipo == "CRIs") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
 
 
-ggplot(rudah_kits_cris_plot) +
+kits_region <- rudah_kits_cris_plot |> 
+  filter(Tipo == "Kits") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
+
+
+
+# CRIs by region
+ggplot(cris_region, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.2
+  ) +
+    geom_text(aes(label = Total),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 8
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "CRIs distribuidos durante los últimos 7 días",
+    x = "Número de CRIs",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 7),
+    labels = label_number_si()
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    font_size = 30
+  )
+# # Kits by region
+# ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
+#   geom_col(
+#   fill = unhcr_pal(n = 1, "pal_blue"),
+#   width = 0.8
+#   ) +
+#   geom_text(aes(label = Total), hjust = 1.5, colour = "white")  +
+#   labs(
+#     title = "Kits distribuidos durante los últimos 7 días",
+#     x = "Número de CRIs",
+#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+#   ) +
+#   scale_x_continuous(
+#     expand = expansion(c(0, 0.1)),
+#     breaks = pretty_breaks(n = 7),
+#     labels = label_number_si()
+#   ) +
+#   theme_unhcr(
+#     grid = FALSE,
+#     axis = "y",
+#     axis_title = "x"
+#   )
+
+
+```
+``
+</div>
+
+
+<div class = "column">
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+
+# Kits by region
+ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
+   geom_text(aes(label = Total),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 8
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "Kits distribuidos durante los últimos 7 días",
+    x = "Número de CRIs",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 7),
+    labels = label_number_si()
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    font_size = 30
+  )
+
+
+```
+``
+</div>
+</div>
+
+
+
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+
+# 
+
+# 
+# 
+# ggplot(rudah_kits_cris_plot) +
+#   geom_col(aes(
+#     x = Tipo,
+#     y = Total,
+#     fill = Tipo
+#   ),
+#   position = position_dodge(width = 0.7),
+#   width = 0.6
+#   ) +
+# #  facet_wrap(~ Oficina, nrow = 2) +
+#     facet_grid(~ region, scales='free', space='free') +
+#   geom_text(aes(
+#     x = Tipo,
+#     y = Total,
+#     group = Tipo,
+#     label = Total
+#   ),
+#   position = position_dodge(width = 0.7),
+#   vjust = -1,
+#   size = 8 / .pt
+#   ) +
+#   scale_fill_unhcr_d(
+#     palette = "pal_unhcr",
+#     nmax = 3,
+#     order = c(2, 3, 1)
+#   ) +
+#   labs(
+#     title = "Asistencia brindada",
+#     y = "Insumos distribuidos",
+#     x = "Oficina de terreno",
+#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+#   ) +
+#  # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
+#   scale_y_continuous(expand = expansion(c(0, 0.1))) +
+#   theme_unhcr(
+#     grid = FALSE,
+#     axis = "x",
+#     axis_title = FALSE,
+#     axis_text = "x"
+#   ) +
+#   ylim(0,rudah_kits_cris_plot_ymax) +
+#   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+#   facet_wrap(~ region, ncol = 3, scales='free') 
+# 
+
+
+
+total_kits_cris_line <- rudah |> 
+ select(today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>  
+  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("kit")), as.numeric) |>
+  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("cri")), as.numeric) |>
+  mutate(Kits = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |>
+  mutate(CRIs = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |>
+  select(today, Kits, CRIs) |> 
+  group_by(today) |>
+  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
+  pivot_longer(!today, names_to="Tipo", values_to="Total")
+  
+rudah_kits_cris_plot_ymax <- max(total_kits_cris_line$Total)*1.2
+
+ggplot(total_kits_cris_line, aes(
+    x = today,
+    y = Total)) +
   geom_col(aes(
-    x = Tipo,
-    y = Total,
     fill = Tipo
   ),
   position = position_dodge(width = 0.7),
   width = 0.6
   ) +
-#  facet_wrap(~ Oficina, nrow = 2) +
-    facet_grid(~ region, scales='free', space='free') +
   geom_text(aes(
-    x = Tipo,
-    y = Total,
     group = Tipo,
-    label = Total
+    label = Total, 
+    size = 8
   ),
   position = position_dodge(width = 0.7),
   vjust = -1,
-  size = 8 / .pt
+  size = 5
   ) +
   scale_fill_unhcr_d(
     palette = "pal_unhcr",
@@ -281,69 +683,155 @@ ggplot(rudah_kits_cris_plot) +
     order = c(2, 3, 1)
   ) +
   labs(
-    title = "Asistencia brindada",
-    y = "Insumos distribuidos",
-    x = "Oficina de terreno",
+    title = "Distribuciones diarias durante los ultimos 7 dias",
+    y = "Cantidad de insumos",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
-  scale_y_continuous(expand = expansion(c(0, 0.1))) +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    labels = label_number_si()
+  ) +
+  ylim(0,rudah_kits_cris_plot_ymax) +
   theme_unhcr(
     grid = FALSE,
     axis = "x",
-    axis_title = FALSE,
-    axis_text = "x"
+    axis_title = "x",
+    font_size = 16
   ) +
-  ylim(0,rudah_kits_cris_plot_ymax) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
 
 ```
 
-### Tipo de Kits y CRIs distribuidos
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
-
-library(knitr)
-library(kableExtra)
+El Anexo 1 brinda el desglose de los Kits y CRIs distribuidos durante los últimos 7 días por región. 
+\newpage
 
 
-kits_cris_list <- rudah |>
-  select(region, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
-#  mutate_at(c('col1', 'col2'), as.numeric)
-#  mutate_at('kit_dis_kit_abrigo_bebe':'cri_dis_teclado', ~replace_na(.,0))
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("cri")), as.numeric) |>
-  pivot_longer(!region, names_to="Tipo", values_to="Total") |>
-  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
-#  mutate(across(c('Detalle'), str_replace, '_', ' '))
-  mutate_all(funs(str_replace_all(., "_", " "))) |> 
-  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
-  mutate_all(funs(str_replace_all(., "Acnur", "ACNUR"))) |> 
-  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
-  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
-  filter(Total != 0) |> 
-  mutate_at(vars(Total), as.numeric) |>
-  group_by(region, Kit_CRI, Detalle) |> 
-  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
-  arrange(region, Kit_CRI, -Total)
-
-kits_cris_list |>
-  kbl() |>
-  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
-
-```
-
-### Distribuciones en el tiempo
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
 
 
-rudah_all <- main
 
+
+
+
+## Distribuciones acumuladas
+
+<div class = "row">
+<div class = "column">
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+
+rudah_all <- main  
+
+
+total_kits_all <- rudah_all |> 
+ select("kit_dis_kit_abrigo_bebe":"kit_dis_other")  |>  
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+total_cris_all <- rudah_all |> 
+ select("cri_dis_balde":"cri_dis_teclado") |> 
+ mutate_all(~coalesce(.,0)) |> 
+ rowSums() |> 
+ sum()
+
+personas_kits_all <- rudah_all |> 
+  mutate(sum = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+personas_cris_all <- rudah_all |> 
+  mutate(sum = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+
+personas_kits_cris_all <- rudah_all |> 
+  filter(grepl('asistencia_kit', kit_orientacion)) |> 
+  select("member_count") |> 
+  rowSums() |> 
+  sum()
+
+# Loading required packages
+library(ggtext)
+library(ggforce)
+
+kits_cris_plot_all <- data.frame(total_cris_all, total_kits_all) |> 
+  rename("CRI" = total_cris_all) |>
+  rename("Kits" = total_kits_all) |>
+  pivot_longer(cols = CRI:Kits, names_to = "Type", values_to = "Total")
+
+
+# Plot total CRIs and Kits
+ggplot(kits_cris_plot_all) +
+  geom_arc_bar(aes(
+    x0 = 0,
+    y0 = 0,
+    r0 = 0.6,
+    r = 1,
+    amount = Total,
+    fill = Type
+  ),
+  stat = "pie",
+  size = 1,
+  color = "#FFFFFF"
+  ) +
+  geom_richtext(
+    x = c(1.25, -1.25),
+    y = c(-0.3, 0.3),
+    aes(label = paste0(
+      Type,
+      "<br><strong> ",
+      format(Total, big.mark = ","),
+ #     round(Total, 0),
+      "</strong>", "<br>",
+ #     format(round(100 * Total / sum(Total), 1), big.mark = ","),
+      round(100 * Total / sum(Total), 1),
+      "%"
+    )),
+    size = 12,
+    fill = NA,
+    label.color = NA
+  ) +
+  geom_richtext(
+    x = 0,
+    y = 0,
+    label = paste0(
+      "Total distribuido",
+      "<br><strong>",
+      format(sum(kits_cris_plot_all$Total), big.mark = ","),
+#      round(sum(kits_cris_plot_all$Total), 0),
+      "</strong>"
+    ),
+    size = 12,
+    fill = NA,
+    label.color = NA
+  ) +
+  labs(
+    title = "Kits y CRIs distribuidos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_fill_unhcr_d(
+    palette = "pal_unhcr",
+    direction = -1
+  ) +
+  scale_x_continuous(expand = expansion(c(0.3, 0.5))) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    axis_text = FALSE,
+    legend = FALSE,
+    font_size = 30
+  )
+
+## Preparing totals by region
 names_lug_all <- c('region')
 rudah_all[,names_lug_all] <- lapply(rudah_all[,names_lug_all] , to_factor)
 
@@ -353,58 +841,25 @@ rudah_kits_cris_plot_all <- rudah_all |>
   select("region", "Kits", "CRIs") |>
   group_by(region) |>
   summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
-  pivot_longer(cols = c(Kits, CRIs), names_to="Tipo", values_to="Total") |> 
-  drop_na(region) 
+  pivot_longer(!region, names_to="Tipo", values_to="Total")
+
 
 rudah_kits_cris_plot_all <- mutate(rudah_kits_cris_plot_all, region = fct_reorder(region, -Total, sum))
 
-rudah_kits_cris_plot_all_ymax <- max(rudah_kits_cris_plot_all$Total)*1.1
+cris_region_all <- rudah_kits_cris_plot_all |> 
+  filter(Tipo == "CRIs") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
 
 
-ggplot(rudah_kits_cris_plot_all) +
-  geom_col(aes(
-    x = Tipo,
-    y = Total,
-    fill = Tipo
-  ),
-  position = position_dodge(width = 0.7),
-  width = 0.6
-  ) +
-#  facet_wrap(~ Oficina, nrow = 2) +
-    facet_grid(~ region, scales='free', space='free') +
-  geom_text(aes(
-    x = Tipo,
-    y = Total,
-    group = Tipo,
-    label = Total
-  ),
-  position = position_dodge(width = 0.7),
-  vjust = -1,
-  size = 8 / .pt
-  ) +
-  scale_fill_unhcr_d(
-    palette = "pal_unhcr",
-    nmax = 3,
-    order = c(2, 3, 1)
-  ) +
-  labs(
-    title = "Asistencia brindada",
-    y = "Insumos distribuidos",
-    x = "Oficina de terreno",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
- # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
-  scale_y_continuous(expand = expansion(c(0, 0.1))) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = "x",
-    axis_title = FALSE,
-    axis_text = "x"
-  ) +
-  ylim(0,rudah_kits_cris_plot_all_ymax) +
-  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+kits_region_all <- rudah_kits_cris_plot_all |> 
+  filter(Tipo == "Kits") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
 
-start_rudah = min(rudah_all$today)
+start_rudah_all = min(rudah_all$today)
 
 total_kits_cris_all = format(sum(rudah_kits_cris_plot_all$Total), big.mark = ",")
 
@@ -412,19 +867,192 @@ total_kits_all = format(sum(subset(rudah_kits_cris_plot_all, Tipo == "Kits")$Tot
 total_cris_all = format(sum(subset(rudah_kits_cris_plot_all, Tipo == "CRIs")$Total), big.mark = ",")
 
 
+```
+</div>
+
+<div class = "column">
+
+
+Desde la implementación actual del RUDAH (`r start_rudah_all`) se registró la distribución de un total de `r total_kits_cris_all` insumos, entre ellos `r total_kits_all` Kits y `r total_cris_all` CRIs.
+
+</div>
+</div>
+
+<div class = "row">
+
+<div class = "column">
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+
+
+
+
+
+# CRIs by region
+ggplot(cris_region_all, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
+    geom_text(aes(label = format(Total, big.mark = ",")),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 8
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "CRIs distribuidos",
+    x = "Número de CRIs",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 7),
+    labels = label_number_si()
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    font_size = 30
+  )
+
 
 ```
+``
+</div>
 
-Desde la implementación actual del RUDAH (`r start_rudah`) se registró la distribución de un total de `r total_kits_cris_all` insumos, entre ellos `r total_kits_all` Kits y `r total_cris_all` CRIs.
 
-Promedio móvil de distribuciones diarias de Kits (en azul) y CRIs (en gris) por región:
+<div class = "column">
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
 
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=4}
+# Kits by region
+ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
+    geom_text(aes(label = format(Total, big.mark = ",")),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 8
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "Kits distribuidos",
+    x = "Número de CRIs",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 7),
+    labels = label_number_si()
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    font_size = 30
+  )
+
+
+```
+``
+</div>
+</div>
+
+
+
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE, dpi= 150,  fig.width=7,fig.height=3}
 
 ## Mobile average over time of kits and CRI distributions by region
 
 library(zoo)
 library(padr)
+
+## Total trends CRIs and Kits national level
+kits_cris_list_trend_all <- rudah_all |>
+  select(today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
+  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("kit")), as.numeric) |>
+  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("cri")), as.numeric) |>
+  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  filter(Total != 0) |> 
+  mutate_at(vars(Total), as.numeric) |>
+  group_by(today, Kit_CRI) |> 
+  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
+  arrange(today, Kit_CRI, -Total) |> 
+  pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
+  ungroup() |> 
+  mutate(group = "group") |> 
+  padr::pad(interval = "day", group = "group") |> 
+  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
+  group_by(group) |> 
+#  filter(sum(Kit) + sum(CRI) != 0) |> 
+  mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
+  mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> 
+  filter(!is.na(cma_kits)) |> 
+  select(today, cma_kits, cma_cris) 
+  # rename("Kits" = cma_kits) |>
+  # rename("CRIs" = cma_cris) 
+#  pivot_longer(cols = c(Kits, CRIs), names_to = "Tipo", values_to = "Total")
+
+
+ymax_kits_cris_list_trend_all <- max(kits_cris_list_trend_all$cma_kits * 1.1)
+
+ggplot(kits_cris_list_trend_all, aes(
+    x = today)) +
+  geom_line(aes(
+    y = cma_kits
+  ),
+  size = 0.5,
+  color = unhcr_pal(n = 1, "pal_blue")
+  ) +
+  geom_line(aes(
+    y = cma_cris
+  ),
+  size = 0.5,
+  color = unhcr_pal(n = 1, "pal_grey")
+  ) +
+  labs(
+    title = "Distribución de Kits y CRIs",
+    y = "Numero de insumos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+ # scale_x_continuous(breaks = pretty_breaks()) +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+    labels = label_number_si(),
+    limits = c(0, ymax_kits_cris_list_trend_all)
+  ) +
+  theme_unhcr(font_size = 20,
+    grid = "Y",
+    axis = "x",
+    axis_title = "y"
+  ) 
+
+
+```
+
+
+Promedio móvil (10 días) de distribuciones diarias de Kits (en azul) y CRIs (en gris) a nivel nacional.
+
+\newpage
+
+
+Promedio móvil (10 días) de distribuciones diarias de Kits (en azul) y CRIs (en gris) por región:
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE, dpi=300,  fig.width=7,fig.height=5.8}
+
+## Mobile average over time of kits and CRI distributions by region
+
+
 
 ## First total trends by total kits and CRIs
 kits_cris_list_trend <- rudah_all |>
@@ -449,8 +1077,9 @@ kits_cris_list_trend <- rudah_all |>
   mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
   group_by(region) |> 
 #  filter(sum(Kit) + sum(CRI) != 0) |> 
-  mutate(cma_kits = zoo::rollmean(Kit, 7, fill = NA)) |>   # Centered moving average
-  mutate(cma_cris = zoo::rollmean(CRI, 7, fill = NA))  # Centered moving average
+  mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
+  mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> # Centered moving average
+  filter(!is.na(cma_cris)) 
   # select(region, today, cma_kits, cma_cris) |> 
   # pivot_longer(cols = c(cma_kits, cma_cris), names_to = "Tipo", values_to = "CMA") |> 
   #  na.omit() |> 
@@ -466,30 +1095,35 @@ ggplot(kits_cris_list_trend, aes(
     y = cma_kits
   ),
   size = 0.5,
-  color = unhcr_pal(n = 1, "pal_blue")
+  color = unhcr_pal(n = 1, "pal_blue"),
+  lineend = "round",
+  linejoin = "round"
   ) +
-  geom_line(aes(
+    geom_line(aes(
     y = cma_cris
   ),
   size = 0.5,
-  color = unhcr_pal(n = 1, "pal_grey")
+  color = unhcr_pal(n = 1, "pal_grey"),
+  lineend = "round",
+  linejoin = "round"
   ) +
   labs(
     title = "Distribución de Kits y CRIs",
-    y = "Number of insumos",
+    y = "Numero de insumos",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks()) +
   scale_y_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(n = 4),
-    labels = label_number_si(),
-    limits = c(0, ymax_kits_cris_list_trend)
+    labels = label_number_si()
+#    limits = c(0, ymax_kits_cris_list_trend)
   ) +
-  theme_unhcr(
+  theme_unhcr(font_size = 30,
     grid = "Y",
     axis = "x",
-    axis_title = "y"
+    axis_title = "y",
+    legend = TRUE
   ) +
   facet_wrap(~ region, ncol = 3, scales='free') 
   
@@ -526,14 +1160,14 @@ kits_cris_list_trend_pred <- kits_cris_list_trend |>
 
 kits_cris_list_trend_pred |>
   kbl() |>
-  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
+  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 10)
 
 
 ```
 
 Con desglose estimado por tipo de kit y CRI:
 
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=4.1}
 
 ## Mobile average over time of kits and CRI distributions by region
 
@@ -595,20 +1229,66 @@ kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
   # mutate_at(vars("PE04":"PE24"), as.numeric) |>
   # mutate(Total = rowSums(across("PE04":"PE24"))) |>
   filter(Total != 0) |> 
-  arrange(Kit_CRI, Detalle)
+  arrange(Kit_CRI, Detalle) |> 
+  select(Detalle, "Arequipa":"Tumbes") |> 
+  pivot_longer(cols = "Arequipa":"Tumbes", names_to = "region", values_to = "Total") |> 
+  filter(Total != 0)
+# 
+# df <- read_csv("https://raw.githubusercontent.com/GDS-ODSSS/unhcr-dataviz-platform/master/data/correlation/heatmap.csv")
 
-kits_cris_list_trend_detail |>
-  kbl() |>
-  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
+ggplot(
+  kits_cris_list_trend_detail,
+  aes(
+    x = region,
+    y = fct_rev(Detalle)
+  )
+) +
+  geom_tile(aes(
+    fill = Total
+  ),
+  color = "white",
+  lwd = .5,
+  linetype = 1
+  ) +
+  geom_text(aes(label = Total), colour = "white", size = 5)  +
+  labs(
+    title = "Kits y CRIs posiblemente necesitados",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  # scale_x_continuous(
+  #   expand = expansion(c(0, 0)),
+  #   breaks = pretty_breaks(n = 10)
+  # ) +
+  # scale_y_discrete(
+  #   labels = scales::label_wrap(17)
+  # ) +
+  scale_fill_stepsn(
+    colors = unhcr_pal(n = 10, "pal_blue"),
+    n.break = 10,
+    name = "Numero de insumos"
+  ) +
+  # coord_fixed() +
+    theme_unhcr(
+    font_size = 16,
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    legend_title = TRUE,
+    legend = FALSE
+  )
+# 
+# kits_cris_list_trend_detail |>
+#   kbl() |>
+#   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 
 ```
 
 Cabe resaltar que se trata de datos indicativos basados en actividades pasadas, que no consideran eventuales nuevos eventos o decisiones operativas.
 
-Entre estos, los siguientes insumos podrían ser destinados a los socios (únicamente en casos de más de 5 insumos):
+Entre estos, los siguientes insumos podrían ser destinados a los socios:
 
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3.9}
 
 ## Mobile average over time of kits and CRI distributions by region by partner
 
@@ -689,17 +1369,61 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   # mutate_at(vars("PE04":"PE24"), as.numeric) |>
   # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
   # mutate(Total = rowSums(across("PE04":"PE24"))) |>
-  filter(Total > 5) |> 
-  arrange(`Org.`, Kit_CRI, Detalle)
+#  filter(Total > 5) |> 
+  select(`Org.`, Detalle, Total)
 
-kits_cris_list_trend_detail_socios |>
-  kbl() |>
-  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
+
+ggplot(
+  kits_cris_list_trend_detail_socios,
+  aes(
+    x = `Org.`,
+    y = fct_rev(Detalle)
+  )
+) +
+  geom_tile(aes(
+    fill = Total
+  ),
+  color = "white",
+  lwd = .5,
+  linetype = 1
+  ) +
+  geom_text(aes(label = Total), colour = "white", size = 5)  +
+  labs(
+    title = "Kits y CRIs posiblemente necesitados por socio",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  # scale_x_continuous(
+  #   expand = expansion(c(0, 0)),
+  #   breaks = pretty_breaks(n = 10)
+  # ) +
+  # scale_y_discrete(
+  #   labels = scales::label_wrap(17)
+  # ) +
+  scale_fill_stepsn(
+    colors = unhcr_pal(n = 10, "pal_blue"),
+    n.break = 10,
+    name = "Numero de insumos"
+  ) +
+  # coord_fixed() +
+    theme_unhcr(
+    font_size = 16,
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    legend_title = TRUE,
+    legend = FALSE
+  )
+
+# kits_cris_list_trend_detail_socios |>
+#   kbl() |>
+#   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 
 ```
 
-## Respuesta en curso: Orientaciones brindadas en frontera
+El Anexo 2 brinda un desglose por tipo de insumo, socio y región.
+
+## Orientaciones brindadas en frontera durante los últimos 7 días
 
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -807,7 +1531,8 @@ ggplot(rudah_ori_plot) +
     x = Tipo,
     y = Total,
     group = Tipo,
-    label = Total
+    label = Total, 
+    size = 8
   ),
   position = position_dodge(width = 0.7),
   vjust = -1,
@@ -877,81 +1602,130 @@ ggplot(rudah_ori_plot) +
 #   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 ```
+\newpage
+### Anexo 1: Tipo de Kits y CRIs distribuidos durante los últimos 7 días
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
 
-## Flujos en frontera
+
+
+kits_cris_list <- rudah |>
+  select(region, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
+#  mutate_at(c('col1', 'col2'), as.numeric)
+#  mutate_at('kit_dis_kit_abrigo_bebe':'cri_dis_teclado', ~replace_na(.,0))
+  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("kit")), as.numeric) |>
+  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("cri")), as.numeric) |>
+  pivot_longer(!region, names_to="Tipo", values_to="Total") |>
+  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+#  mutate(across(c('Detalle'), str_replace, '_', ' '))
+  mutate_all(funs(str_replace_all(., "_", " "))) |> 
+  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+  mutate_all(funs(str_replace_all(., "Acnur", "ACNUR"))) |> 
+  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
+  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  filter(Total != 0) |> 
+  mutate_at(vars(Total), as.numeric) |>
+  group_by(region, Kit_CRI, Detalle) |> 
+  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
+  arrange(region, Kit_CRI, -Total)
+
+kits_cris_list |>
+  kbl() |>
+  kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 10)
+
+```
+\newpage
+### Anexo 2: Insumos proyectados necesarios para los próximos 30 días por región y socio
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+
+## Mobile average over time of kits and CRI distributions by region by partner
+
+## Preparing the data
+
+kits_cris_list_trend_detail_socios <- rudah_all |>
+  dplyr::filter(grepl("sociounhcr", organizacion) | grepl("obc", organizacion) | grepl("ciremi", organizacion)) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "hias", "HIAS")) |>  
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "crus_roja", "Cruz Roja")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "caritas", "Caritas")) |>  
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "encuentros", "Encuentros")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "scalabrini", "Scalabrini")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "ach", "ACH")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "uv", "UV")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
+  dplyr::filter(tipo_socio != "other") |> 
+  select(region, today, organizacion, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
+  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("kit")), as.numeric) |>
+  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("cri")), as.numeric) |>
+   group_by(region, today, organizacion) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) 
+
+
+## Adding min and max dates for missing values by region and organization
+kits_cris_list_trend_detail_socios_min <- kits_cris_list_trend_detail_socios |> 
+  group_by(region, organizacion) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemin)
+
+kits_cris_list_trend_detail_socios_max <- kits_cris_list_trend_detail_socios |> 
+  group_by(region, organizacion) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemax)
 
 
 
-```{r eval=FALSE, fig.height=2.5, fig.width=7, message=FALSE, warning=FALSE, dpi=150, include=FALSE}
+## Continuing the pipe: Trends by type of kits and CRIs and partners
+kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
+  ungroup() |> 
+  bind_rows(kits_cris_list_trend_detail_socios_min) |>
+  bind_rows(kits_cris_list_trend_detail_socios_max) |>
+  group_by(region, organizacion) |> 
+  complete(today = seq(min(today), max(today), by = "1 day")) %>%
+  # pad(interval = "day") |>
+  ungroup() |> 
+  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  na.omit()|> 
+  filter(today > referencemin) |> 
+  na.omit() |> 
+  group_by(region, organizacion) |> 
+  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+            list(~. * projectiondays)) |> 
+  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+            list(~round(., digits = 0))) |> 
+  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+  filter(Total > 0) |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
+  pivot_wider(names_from = region, values_from = Total) |> 
+  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+#  mutate(across(c('Detalle'), str_replace, '_', ' '))
+  mutate_all(funs(str_replace_all(., "_", " "))) |> 
+  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+  mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
+  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
+  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  mutate(across('organizacion', str_replace, 'obc', 'OBC')) |> 
+  mutate(across('organizacion', str_replace, 'sociounhcr', 'Socio ACNUR Local')) |> 
+  mutate(across('organizacion', str_replace, 'ciremi', 'CIREMI')) |> 
+  mutate_at(vars("Arequipa":"Tumbes"), as.numeric) |>
+  mutate_at(vars("Arequipa":"Tumbes"), ~replace_na(.,0)) |>
+  mutate(Total = rowSums(across("Arequipa":"Tumbes"))) |>
+  rename("Org." = organizacion) |>
+  # mutate_at(vars("PE04":"PE24"), as.numeric) |>
+  # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
+  # mutate(Total = rowSums(across("PE04":"PE24"))) |>
+  filter(Total > 5) |> 
+  arrange(`Org.`, Kit_CRI, Detalle) 
 
-# La última actualización de la OIM-DTM fue el `r# max(as.Date(DTM$Fecha, '%d/%m/%Y'))`:
-# #Plot
-# f <- function(punto) {
-#   df = filter(DTM, Punto == punto)
-#   df1 = filter(df, Fecha > Sys.Date() - 90)
-#   df_max = max(df1$Personas)
-#   ggplot(df1, aes(
-#   x = Fecha,
-#   y = Personas,
-#   color = Tipo
-# )) +
-#   geom_line(size = 0.5) +
-#   geom_dl(aes(label = Tipo),
-#     method = list(cex = 2,
-#       dl.trans(x = x + 0.1),
-#       "last.points"
-#     ),
-#     size = 10 / .pt
-#   ) +
-#   labs(
-#     title = paste("Flujos en ", punto),
-#     y = "Personas observadas",
-#     caption = "Fuente: Conteo DTM (OIM)"
-#   ) +
-#  # scale_x_continuous(breaks = pretty_breaks()) +
-#   scale_y_continuous(
-#     expand = expansion(c(0, 0.1)),
-#     breaks = pretty_breaks(),
-#     labels = label_number_si(),
-#     limits = c(0, df_max)
-#   ) +
-#   scale_color_unhcr_d(
-#     palette = "pal_unhcr",
-#     nmax = 10,
-#     order = c(4, 1)
-#   ) +
-#   coord_cartesian(clip = "off") +
-#   theme_unhcr(
-#     grid = "Y",
-#     axis = "x",
-#     axis_title = "y",
-#     legend = FALSE,
-#     font_size = 40
-#   ) +
-#   theme(plot.margin = margin(r = 50))
-# }
-# 
-# Tumbes_Plot <- f("Tumbes")
-# Tumbes_Plot
+kits_cris_list_trend_detail_socios |>
+  kbl() 
+# kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 10)
 
 
 ```
-
-```{r eval=FALSE, include=FALSE, fig.align='center', fig.height=2.5, fig.width=7, warning=FALSE, dpi=150, results='hide'}
-# 
-# Tacna_Plot <- f("Tacna")
-# Tacna_Plot
-
-```
-
-```{r  eval=FALSE, include=FALSE, echo=FALSE, warning=FALSE, fig.align = 'center', results='hide', fig.width=7,fig.height=2.5, dpi=150}
-# 
-# Puno_Plot <- f("Puno")
-# Puno_Plot
-
-
-```
-
-Para más información, consultar el [dashboard de estadísticas poblacionales](https://app.powerbi.com/links/xEqM6jT2c9?ctid=e5c37981-6664-4134-8a0c-6543d2af80be) (pestaña "Flujos Irregulares").
-
-
