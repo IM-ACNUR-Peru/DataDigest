@@ -4,7 +4,7 @@
   "platform": "4.3.1",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "Weekly_Data_Digest.Rmd",
+    "primary_rmd": "DTM_Rmd_Test.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
@@ -1132,7 +1132,7 @@
         "Packaged": "2023-08-29 23:08:35 UTC; th798",
         "Repository": "CRAN",
         "Date/Publication": "2023-09-01 08:30:06 UTC",
-        "Built": "R 4.3.2; ; 2023-11-14 01:51:39 UTC; windows"
+        "Built": "R 4.3.2; ; 2023-12-24 01:54:06 UTC; windows"
       }
     },
     "dm": {
@@ -4828,13 +4828,13 @@
       }
     },
     "unhcrthemes": {
-      "Source": "CRAN",
-      "Repository": "https://cran.rstudio.com",
+      "Source": "github",
+      "Repository": null,
       "description": {
         "Package": "unhcrthemes",
         "Type": "Package",
         "Title": "UNHCR 'ggplot2' Theme and Colour Palettes",
-        "Version": "0.6.2",
+        "Version": "0.6.2.9000",
         "Authors@R": "\n    c(person(\"Cédric\", \"Vidonne\",\n             email = \"cedric@vidonne.me\",\n\t     role = c(\"aut\", \"cre\")),\n      person(\"Ahmadou\", \"Dicko\",\n             email = \"mail@ahmadoudicko.com\",\n\t     role = \"aut\"),\n      person(\"UNHCR\",\n         role = \"cph\"))",
         "Description": "A 'ggplot2' theme and color palettes following\n    the United Nations High Commissioner for Refugees (UNHCR) Data Visualization Guidelines recommendations.",
         "License": "MIT + file LICENSE",
@@ -4845,16 +4845,26 @@
         "Imports": "ggplot2, scales, ggtext, ggrepel, systemfonts, extrafont",
         "Suggests": "rmarkdown, knitr, colorspace, ragg, refugees, tidyverse,\ntreemapify, ggstream, dplyr",
         "RoxygenNote": "7.2.3",
+        "Roxygen": "list(markdown = TRUE)",
         "VignetteBuilder": "knitr",
         "Config/Needs/website": "unhcr-dataviz/unhcrtemplate",
         "Config/testthat/edition": "3",
         "NeedsCompilation": "no",
-        "Packaged": "2023-11-27 08:47:14 UTC; cvidonne",
+        "Packaged": "2024-01-04 17:52:31 UTC; ZANAZZI",
         "Author": "Cédric Vidonne [aut, cre],\n  Ahmadou Dicko [aut],\n  UNHCR [cph]",
         "Maintainer": "Cédric Vidonne <cedric@vidonne.me>",
-        "Repository": "CRAN",
-        "Date/Publication": "2023-11-27 09:00:02 UTC",
-        "Built": "R 4.3.2; ; 2023-12-21 04:18:14 UTC; windows"
+        "Built": "R 4.3.1; ; 2024-01-04 17:52:31 UTC; windows",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "unhcrthemes",
+        "RemoteUsername": "unhcr-dataviz",
+        "RemotePkgRef": "unhcr-dataviz/unhcrthemes",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "642ddf09e50b936c2603b055506e49d823852a8e",
+        "GithubRepo": "unhcrthemes",
+        "GithubUsername": "unhcr-dataviz",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "642ddf09e50b936c2603b055506e49d823852a8e"
       }
     },
     "urltools": {
@@ -5382,6 +5392,9 @@
     "20231219_Weekly_Data_Digest.pdf": {
       "checksum": "9e79e859d7d9f10c0b4ddccbed67fc14"
     },
+    "all_data_dtm.csv": {
+      "checksum": "ebedca935b40972e506a93798a7d47f4"
+    },
     "data/enaho/2018/CED- 01A-300 2018.pdf": {
       "checksum": "b697a7a61dbbcdb9e26a87eb6da1953e"
     },
@@ -5592,6 +5605,9 @@
     "dtm_puno.json": {
       "checksum": "f0c778afd556cd722b0488f3d17ff23f"
     },
+    "DTM_Rmd_Test.Rmd": {
+      "checksum": "78d40922fb124db43279c44202dbc6cb"
+    },
     "dtm_tacna - Copy.json": {
       "checksum": "1e16e480eb3738ff0e91a06f32fae5ae"
     },
@@ -5626,13 +5642,13 @@
       "checksum": "0de976540f95b889bb052871a37e02aa"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "2baca8bcaf8eb5e6b99c89df4d8821e0"
+      "checksum": "ec394ecf2a84248af8321bb4d854d2d8"
     },
     "Weekly_Data_Digest.pdf": {
-      "checksum": "aaeba1f9ac10679928eaac7bf259e1da"
+      "checksum": "ffc2fac084a2630e78f906c79495258d"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "0dc4f206dce8769ac3f2924aeef3194b"
+      "checksum": "9082129117a51f4c781a69eef573737f"
     }
   },
   "users": null

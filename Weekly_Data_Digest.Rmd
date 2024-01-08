@@ -5,7 +5,7 @@ output: unhcrdown::paged_simple
 knit: pagedown::chrome_print
 ---
 
-```{=html}
+
 <style type="text/css">
 
 
@@ -30,7 +30,9 @@ header{
    .column {flex: 50%;}
 
 </style>
-```
+
+
+
 ```{r setup, include=FALSE}
 library(robotoolbox)
 library(tidyverse)
@@ -64,7 +66,9 @@ main <- x$main
 member2 <- x$member
 
 main <- main |> 
-    dplyr::filter(test_real == "registro_real")
+    dplyr::filter(test_real == "registro_real") |> 
+    rename(today_rev = today) |> 
+    rename(today = fecha)
 
 main_last_week <- main |> 
   dplyr::filter(today > date_start_filter) |>
@@ -394,8 +398,13 @@ all_data_dtm <- bind_rows(nat_data_dtm, tacna_data_dtm, tumbes_data_dtm, puno_da
   mutate(date = paste(year, month, day, sep = "/")) |> 
   mutate(date=as.Date(date, format = "%Y/%m/%d"))  |> 
   select(date, entradas, salidas, level) |> 
-  pivot_longer(cols = c(entradas, salidas), names_to = "Tipo", values_to = "Total")
+  pivot_longer(cols = c(entradas, salidas), names_to = "Tipo", values_to = "Total") |> 
+  mutate(date_text = format(date, "%d/%m")) 
 
+
+library(ggrepel)
+library(tools)
+library(stringr)
 
 # Plot
 ggplot(all_data_dtm, aes(
@@ -403,27 +412,16 @@ ggplot(all_data_dtm, aes(
   y = Total,
   color = Tipo
 )) +
+    annotate("rect", xmin = max(all_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
   geom_line(size = 0.7) +
-  geom_dl(aes(label = Tipo),
-    method = list(cex = 1,
-      dl.trans(x = x + 0.1),
-      "last.points"
-    ),
-    size = 8
-  ) +
   labs(
  #   title = "Flujos en frontera",
     y = "Personas observadas",
     caption = "Fuente: Conteos DTM OIM"
   ) +
- # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="2 months", limits = c(min(all_data_dtm$date), max(all_data_dtm$date)+30)) +
- #  scale_y_continuous(
- #    expand = expansion(c(0, 0.1)),
- #    breaks = pretty_breaks(),
- #    labels = label_number(scale_cut = cut_short_scale())
- # #   limits = c(0, ymax_kits_cris_list_trend_all)
- #  ) +
+  scale_x_date(date_labels="%b %Y", date_breaks  ="2 months",
+               limits = c(min(all_data_dtm$date), max(all_data_dtm$date)+60)
+               ) +
    scale_y_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(n = 4),
@@ -436,7 +434,7 @@ ggplot(all_data_dtm, aes(
     order = c(7, 1)
   ) +
   coord_cartesian(clip = "off") +
-  facet_wrap(~ level, nrow = 4, scales='free') +
+  facet_wrap(~ level, ncol = 1, scales='free') +
   theme(
      panel.background = element_rect(fill = "white"),
  #   panel.grid = element_blank(),
@@ -458,7 +456,32 @@ ggplot(all_data_dtm, aes(
         family="Lato", face = "plain"),
     legend.position = "none",
      axis.title = element_blank()
-   )
+ #   plot.margin = unit(c(0.1, 3, 0.1, 0.1), "cm")
+   ) +
+  # geom_text_repel(
+  #   data = subset(all_data_dtm, date == max(date)),
+  #   aes(label = sprintf("%s %s (%s)", comma(Total), toTitleCase(Tipo), toTitleCase(date_text))),
+  #   xlim = as.Date(c(max(all_data_dtm$date)+20, max(all_data_dtm$date)+50)),
+  #   size = 3,
+  #   hjust = -2,
+  #   direction = "y",
+  #   box.padding = 0.5,
+  #   nudge_x = 2,
+  #   segment.color = NA,
+  #   show.legend = FALSE
+  # ) 
+ geom_text_repel(
+    data = subset(all_data_dtm, date == max(date)),
+    aes(label = sprintf("%s %s (%s)", comma(Total), toTitleCase(Tipo), toTitleCase(date_text))),
+    xlim = as.Date(c(max(all_data_dtm$date), max(all_data_dtm$date)+50)),
+    size = 3,
+    hjust = -2,
+    direction = "y",
+    box.padding = 0.5,
+    nudge_x = 2,
+    segment.color = NA,
+    show.legend = FALSE
+  ) 
 # 
 # # Plot
 # ggplot(all_data_dtm, aes(
@@ -657,7 +680,7 @@ Durante la última semana, la operación distribuyó `r total_kits` Kits y `r to
 
 ::: row
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
 
 
 ## Preparing totals by region
@@ -709,7 +732,7 @@ ggplot(cris_region, aes(x = Total, y = reorder(region, Total))) +
   ) +
   scale_x_continuous(
     expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 7), 
+    breaks = pretty_breaks(n = 4), 
     labels = label_number(scale_cut = cut_short_scale())
   ) +
   theme_unhcr(
@@ -745,11 +768,11 @@ ggplot(cris_region, aes(x = Total, y = reorder(region, Total))) +
 
 ```
 
-\`\`
+
 :::
 
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
 
 # Kits by region
 ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
@@ -765,7 +788,7 @@ ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
 #  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
   labs(
     title = "Kits distribuidos durante los últimos 7 días",
-    x = "Número de CRIs",
+    x = "Número de Kits",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
   scale_x_continuous(
@@ -784,7 +807,8 @@ ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
 
 ```
 
-\`\`
+
+
 :::
 :::
 
@@ -893,7 +917,7 @@ ggplot(total_kits_cris_line, aes(
   theme_unhcr(
     grid = FALSE,
     axis = "x",
-    axis_title = "x",
+    axis_title = FALSE,
     font_size = 11
   ) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
@@ -1091,8 +1115,9 @@ ggplot(cris_region_all, aes(x = Total, y = reorder(region, Total))) +
   ) +
   scale_x_continuous(
     expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 7),
-    labels = label_number(scale_cut = cut_short_scale())
+    breaks = pretty_breaks(n = 4),
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(0, max(cris_region_all$Total)*1.1)
   ) +
   theme_unhcr(
     grid = FALSE,
@@ -1105,7 +1130,8 @@ ggplot(cris_region_all, aes(x = Total, y = reorder(region, Total))) +
 
 ```
 
-\`\`
+
+
 :::
 
 ::: column
@@ -1125,13 +1151,14 @@ ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
 #  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
   labs(
     title = "Kits distribuidos",
-    x = "Número de CRIs",
+    x = "Número de Kits",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
   scale_x_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 7)
-#    labels = label_number(scale_cut = cut_short_scale())
+     expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+ #   labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(0, max(kits_region_all$Total)*1.1)
   ) +
   theme_unhcr(
     grid = FALSE,
@@ -1144,7 +1171,7 @@ ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
 
 ```
 
-\`\`
+
 :::
 :::
 
@@ -1231,20 +1258,22 @@ ggplot(kits_cris_list_trend_all, aes(
   color = Tipo
 )) +
   geom_line(size = 0.5) +
-  geom_dl(aes(label = Tipo),
-    method = list(cex = 1,
-      dl.trans(x = x + 0.1),
-      "last.points"
-    ),
-    size = 5 
-  ) +
+  # geom_dl(aes(label = Tipo),
+  #   method = list(cex = 1,
+  #     dl.trans(x = x + 0.1),
+  #     "last.points"
+  #   ),
+  #   size = 5 
+  # ) +
   labs(
     title = "Distribución de Kits y CRIs",
     y = "Numero de insumos",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="1 month", limits = c(min(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+30)) +
+  scale_x_date(date_labels="%b %Y", date_breaks  ="1 month"
+               # limits = c(min(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+30)
+               ) +
   scale_y_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(),
@@ -1264,9 +1293,9 @@ ggplot(kits_cris_list_trend_all, aes(
      panel.grid.major.x = element_blank(),
     axis.ticks = element_blank(),
     strip.background = element_rect(colour = "white", fill = "white"),
-    axis.text.x = element_text(size=12,
+    axis.text.x = element_text(size=8,
         family="Lato"),
-    axis.text.y = element_text(size=12,
+    axis.text.y = element_text(size=8,
         family="Lato"),
     axis.line.x = element_line(colour = "black"),
     text = element_text(size=11,
@@ -1277,8 +1306,22 @@ ggplot(kits_cris_list_trend_all, aes(
     plot.caption = element_text(size=6,
         family="Lato", face = "plain"),
     legend.position = "none",
-     axis.title = element_blank()
-   )
+     axis.title = element_blank(),
+ plot.margin = unit(c(0.1, 3, 0.1, 0.1), "cm")
+   ) +
+  geom_text_repel(
+    data = subset(kits_cris_list_trend_all, today == max(today)),
+    aes(label = Tipo),
+    xlim = as.Date(c(max(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+10)),
+    size = 3,
+    hjust = -2,
+    direction = "y",
+    box.padding = 0.5,
+    nudge_x = 2,
+    segment.color = NA,
+    show.legend = FALSE
+  ) 
+   
   # theme_unhcr(
   #   grid = "Y",
   #   axis = "x",
@@ -1542,7 +1585,7 @@ ggplot(
   lwd = .5,
   linetype = 1
   ) +
-  geom_text(aes(label = Total), colour = "white", size = 5)  +
+  geom_text(aes(label = Total), colour = "white", size = 3)  +
   labs(
     title = "Kits y CRIs posiblemente necesitados por región y tipo de insumo",
   #  subtitle = "Por región y tipo de insumo",
@@ -1681,7 +1724,7 @@ ggplot(
   lwd = .5,
   linetype = 1
   ) +
-  geom_text(aes(label = Total), colour = "white", size = 5)  +
+  geom_text(aes(label = Total), colour = "white", size = 3)  +
   labs(
     title = "Kits y CRIs posiblemente necesitados por socio",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
@@ -1712,9 +1755,19 @@ ggplot(
 # kits_cris_list_trend_detail_socios |>
 #   kbl() |>
 #   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
-
+# 
+# library(glue)
+# library(gluedown)
+# 
+# kits_cris_list_trend_detail_socios_top_5 <- kits_cris_list_trend_detail_socios |>
+#   # group_by(Detalle, `Org.`) |>
+#   # summarise_at(vars("Total"), sum, na.rm = TRUE) |>
+#   slice_max(order_by = Total, n = 5) |>
+#   glue_data("**{Detalle}**: {`Org.`} ({Total})") |>
+#   md_bullet()
 
 ```
+
 
 El Anexo 2 brinda un desglose completo por tipo de insumo, socio y región.
 
@@ -1818,7 +1871,7 @@ tot_ori_statement <- ifelse(personas_ori_tot_month == 0 | personas_ori_gen_month
 
 ```
 
-Durante los últimos 30 días, la operación brindó `r total_ori_gen_month` orientaciones generales y `r total_ori_legal_month` orientaciones legales a un total de `r personas_ori_tot_month` personas`r tot_ori_statement`. Durante los últimos días, se brindaron `r total_ori_gen` orientaciones generales y `r total_ori_legal` orientaciones legales.
+Durante los últimos 30 días, la operación brindó `r total_ori_gen_month` orientaciones generales y `r total_ori_legal_month` orientaciones legales a un total de `r personas_ori_tot_month` personas`r tot_ori_statement`. Durante los últimos 7 días, se brindaron `r total_ori_gen` orientaciones generales y `r total_ori_legal` orientaciones legales.
 
 ```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3.5}
 
@@ -1891,14 +1944,14 @@ ggplot(rudah_ori_plot) +
     order = c(7, 2)
   ) +
   labs(
-    title = "Orientaciones brindadas",
+    title = "Orientaciones brindadas durante los últimos 30 días",
     y = "Orientaciones brindadas",
     x = "Oficina de terreno",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
   scale_y_continuous(expand = expansion(c(0, 0.1))) +
-  theme_unhcr(font_size = 12,
+  theme_unhcr(font_size = 10,
     grid = FALSE,
     axis = "x",
     axis_title = FALSE,
@@ -1974,12 +2027,12 @@ ggplot(rudah_ori_plot_all, aes(
     size = 6
   ) +
   labs(
-    title = "Orientaciones brindadas",
+    title = "Orientaciones brindadas - acumuladas",
     y = "Numero de orientaciones",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="1 month", limits = c(min(rudah_ori_plot_all$today), max(rudah_ori_plot_all$today)+30)) +
+  scale_x_date(date_labels="%b %Y", date_breaks  ="2 months", limits = c(min(rudah_ori_plot_all$today), max(rudah_ori_plot_all$today)+30)) +
   scale_y_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(),
@@ -2007,7 +2060,7 @@ ggplot(rudah_ori_plot_all, aes(
     text = element_text(size=11,
         family="Lato"),
     strip.text = element_text(size=12, face = "bold"),
-    title = element_text(size=14,
+    title = element_text(size=12,
         family="Lato", face = "bold"),
     plot.caption = element_text(size=12,
         family="Lato", face = "plain"),
@@ -2210,7 +2263,7 @@ ggplot(
   family = "Lato"
   ) +
   labs(
-    title = "Principales paises de procedencia",
+    title = "Principales paises de procedencia durante los últimos 30 días",
     caption = "Fuente: Monitoreo de Fronteras de ACNUR"
   ) +
   theme_unhcr(
@@ -2295,7 +2348,7 @@ ggplot(
   family = "Lato"
   ) +
   labs(
-    title = "Principales paises de destino",
+    title = "Principales paises de destino durante los últimos 30 días",
     caption = "Fuente: Monitoreo de Fronteras de ACNUR"
   ) +
   theme_unhcr(
