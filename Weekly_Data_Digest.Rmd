@@ -2,7 +2,7 @@
 title: "Weekly Data Digest"
 author: IM ACNUR Peru
 output: unhcrdown::paged_simple
-knit: pagedown::chrome_print
+#knit: pagedown::chrome_print
 ---
 
 
