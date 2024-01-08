@@ -5599,17 +5599,11 @@
     "dtm_national.json": {
       "checksum": "5c47f64743d88990f43d4e34e0a1aa36"
     },
-    "dtm_national2.json": {
-      "checksum": "5c47f64743d88990f43d4e34e0a1aa36"
-    },
     "dtm_puno.json": {
       "checksum": "f0c778afd556cd722b0488f3d17ff23f"
     },
     "DTM_Rmd_Test.Rmd": {
       "checksum": "78d40922fb124db43279c44202dbc6cb"
-    },
-    "dtm_tacna - Copy.json": {
-      "checksum": "1e16e480eb3738ff0e91a06f32fae5ae"
     },
     "dtm_tacna.json": {
       "checksum": "1e16e480eb3738ff0e91a06f32fae5ae"
