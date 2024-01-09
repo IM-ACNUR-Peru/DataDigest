@@ -1,36 +1,11 @@
 ---
 title: "Weekly Data Digest"
 author: IM ACNUR Peru
-output: unhcrdown::paged_simple
+output: 
+  pagedown::html_paged:
+    css: resources/paged.css
 #knit: pagedown::chrome_print
 ---
-
-
-<style type="text/css">
-
-
-body, td {
-   font-size: 12px;
-}
-
-code.r{
-  font-size: 10px;
-}
-
-pre {
-  font-size: 10px
-}
-
-header{
-  margin-top: 0;
-}
-
-   .main-container {max-width: 100%;}
-   .row {display: flex;}
-   .column {flex: 50%;}
-
-</style>
-
 
 
 ```{r setup, include=FALSE}
