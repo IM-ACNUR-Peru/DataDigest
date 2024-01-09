@@ -4,7 +4,7 @@
   "platform": "4.3.1",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "Test_Rmd_Pagedown.Rmd",
+    "primary_rmd": "Weekly_Data_Digest.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
@@ -4873,9 +4873,6 @@
     },
     "Test_Rmd_Pagedown.html": {
       "checksum": "3b382772fa35c883e6725e3a2ed3f81d"
-    },
-    "Test_Rmd_Pagedown.Rmd": {
-      "checksum": "53309ad748c86265750583aec4a17f2d"
     },
     "Test_ScrapingPBI.R": {
       "checksum": "ad524c2cf2a1ab5f56437e207e66cecc"
