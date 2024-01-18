@@ -4610,6 +4610,9 @@
     "20231219_Weekly_Data_Digest.pdf": {
       "checksum": "9e79e859d7d9f10c0b4ddccbed67fc14"
     },
+    "20240110_Weekly_Data_Digest.pdf": {
+      "checksum": "88d6ee095dc128a86f20fdf7cc77428f"
+    },
     "all_data_dtm.csv": {
       "checksum": "ebedca935b40972e506a93798a7d47f4"
     },
@@ -4815,16 +4818,16 @@
       "checksum": "ab1c7a06b2cd53e3f6ba7115e295707b"
     },
     "dtm_national.json": {
-      "checksum": "5c47f64743d88990f43d4e34e0a1aa36"
+      "checksum": "ed6df2190702b6f7fa4dbf61ff54214b"
     },
     "dtm_puno.json": {
-      "checksum": "f0c778afd556cd722b0488f3d17ff23f"
+      "checksum": "3c11635616adf4469ae04c2ddeaa79a9"
     },
     "dtm_tacna.json": {
-      "checksum": "1e16e480eb3738ff0e91a06f32fae5ae"
+      "checksum": "5e83d146200ea02528575a142c5a7b62"
     },
     "dtm_tumbes.json": {
-      "checksum": "17d5244f543227af89e20c9db45389c1"
+      "checksum": "c9cafbfbfff6acc92bc62a4168189f36"
     },
     "dtm2.png": {
       "checksum": "ca2a4ef627be73ad1d647e081c5601e3"
@@ -4881,13 +4884,13 @@
       "checksum": "0de976540f95b889bb052871a37e02aa"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "e97be8766dacd18bf230053f6fe3976e"
+      "checksum": "f43b6038a4e9bb2385f6d42b92ee129f"
     },
     "Weekly_Data_Digest.pdf": {
-      "checksum": "4c205cc2f8e1ad5c559fb94ed00334fe"
+      "checksum": "da13101c99a63236a3e73ba11f0a198c"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "53309ad748c86265750583aec4a17f2d"
+      "checksum": "5c446bfc0dd0fa06b4d94f8124aae5fb"
     }
   },
   "users": null

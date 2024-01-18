@@ -4,7 +4,7 @@ author: IM ACNUR Peru
 output: 
   pagedown::html_paged:
     css: resources/paged.css
-#knit: pagedown::chrome_print
+knit: pagedown::chrome_print
 ---
 
 
@@ -162,22 +162,23 @@ if (status_code == 200) {
 
 ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
 
-months <- ds$ValueDicts$D0[[1]]
-
-eys <- 
-  ds$PH[[1]]$DM0[[1]]$X |> list_rbind() |> as_tibble() |> select(-S) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n()))
-
-when <- 
-  ds$PH[[1]]$DM0[[1]]$C |> 
-  map(\(x) tibble(month = if_else(length(x) == 2, x[1], NA), 
-                  day = if_else(length(x) == 2, x[2], x[1]))) |> 
-  list_rbind() |> 
-  fill(month) |> 
-  mutate(month = months[1+month])
-
-nat_data_dtm <- bind_cols(when |> mutate(n = 2) |> uncount(n), eys) |> 
-  pivot_wider(names_from = direction, values_from = M0) |> 
+nat_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
+  select(C, X) |> 
+  unnest(cols = X) |> 
+  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
+  mutate(across(c('C'), substr, 3, nchar(C))) |> 
+  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
+  select(C, M1, direction) |> 
+  separate(C,
+             into = c("year", "month", "day", "whatever"), 
+                             sep = ",", 
+                             fill = "left") |> 
+  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
+  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
+  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
+  fill(year, month) |> 
+  select(year, month, day, M1, direction) |> 
+   pivot_wider(names_from = direction, values_from = M1) |> 
   mutate(level = "Nacional")
 
 
@@ -216,26 +217,27 @@ if (status_code == 200) {
   # Handle the case when the maximum number of attempts is reached
 }
 
+
 ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
 
-months <- ds$ValueDicts$D0[[1]]
-
-eys <- 
-  ds$PH[[1]]$DM0[[1]]$X |> list_rbind() |> as_tibble() |> select(-S) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n()))
-
-when <- 
-  ds$PH[[1]]$DM0[[1]]$C |> 
-  map(\(x) tibble(month = if_else(length(x) == 2, x[1], NA), 
-                  day = if_else(length(x) == 2, x[2], x[1]))) |> 
-  list_rbind() |> 
-  fill(month) |> 
-  mutate(month = months[1+month])
-
-tacna_data_dtm <- bind_cols(when |> mutate(n = 2) |> uncount(n), eys) |> 
-  pivot_wider(names_from = direction, values_from = M0) |> 
+tacna_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
+  select(C, X) |> 
+  unnest(cols = X) |> 
+  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
+  mutate(across(c('C'), substr, 3, nchar(C))) |> 
+  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
+  select(C, M1, direction) |> 
+  separate(C,
+             into = c("year", "month", "day", "whatever"), 
+                             sep = ",", 
+                             fill = "left") |> 
+  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
+  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
+  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
+  fill(year, month) |> 
+  select(year, month, day, M1, direction) |> 
+   pivot_wider(names_from = direction, values_from = M1) |> 
   mutate(level = "Tacna")
-
 
 
 # Tumbes data
@@ -274,26 +276,27 @@ if (status_code == 200) {
   # Handle the case when the maximum number of attempts is reached
 }
 
+
 ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
 
-months <- ds$ValueDicts$D0[[1]]
-
-eys <- 
-  ds$PH[[1]]$DM0[[1]]$X |> list_rbind() |> as_tibble() |> select(-S) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n()))
-
-when <- 
-  ds$PH[[1]]$DM0[[1]]$C |> 
-  map(\(x) tibble(month = if_else(length(x) == 2, x[1], NA), 
-                  day = if_else(length(x) == 2, x[2], x[1]))) |> 
-  list_rbind() |> 
-  fill(month) |> 
-  mutate(month = months[1+month])
-
-tumbes_data_dtm <- bind_cols(when |> mutate(n = 2) |> uncount(n), eys) |> 
-  pivot_wider(names_from = direction, values_from = M0) |> 
+tumbes_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
+  select(C, X) |> 
+  unnest(cols = X) |> 
+  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
+  mutate(across(c('C'), substr, 3, nchar(C))) |> 
+  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
+  select(C, M1, direction) |> 
+  separate(C,
+             into = c("year", "month", "day", "whatever"), 
+                             sep = ",", 
+                             fill = "left") |> 
+  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
+  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
+  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
+  fill(year, month) |> 
+  select(year, month, day, M1, direction) |> 
+   pivot_wider(names_from = direction, values_from = M1) |> 
   mutate(level = "Tumbes")
-
 
 
 # Puno data
@@ -334,22 +337,23 @@ if (status_code == 200) {
 
 ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
 
-months <- ds$ValueDicts$D0[[1]]
-
-eys <- 
-  ds$PH[[1]]$DM0[[1]]$X |> list_rbind() |> as_tibble() |> select(-S) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n()))
-
-when <- 
-  ds$PH[[1]]$DM0[[1]]$C |> 
-  map(\(x) tibble(month = if_else(length(x) == 2, x[1], NA), 
-                  day = if_else(length(x) == 2, x[2], x[1]))) |> 
-  list_rbind() |> 
-  fill(month) |> 
-  mutate(month = months[1+month])
-
-puno_data_dtm <- bind_cols(when |> mutate(n = 2) |> uncount(n), eys) |> 
-  pivot_wider(names_from = direction, values_from = M0) |> 
+puno_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
+  select(C, X) |> 
+  unnest(cols = X) |> 
+  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
+  mutate(across(c('C'), substr, 3, nchar(C))) |> 
+  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
+  select(C, M1, direction) |> 
+  separate(C,
+             into = c("year", "month", "day", "whatever"), 
+                             sep = ",", 
+                             fill = "left") |> 
+  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
+  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
+  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
+  fill(year, month) |> 
+  select(year, month, day, M1, direction) |> 
+   pivot_wider(names_from = direction, values_from = M1) |> 
   mutate(level = "Puno")
 
 # All together now!
@@ -367,7 +371,6 @@ all_data_dtm <- bind_rows(nat_data_dtm, tacna_data_dtm, tumbes_data_dtm, puno_da
   mutate(across('month', str_replace, 'octubre', '10')) |> 
   mutate(across('month', str_replace, 'noviembre', '11')) |> 
   mutate(across('month', str_replace, 'diciembre', '12')) |> 
-  mutate(year = "2023") |> 
   mutate_at(vars(starts_with("day")), as.character) |>
   mutate(day = if_else(nchar(day) == 2, day, paste("0", day, sep = ""))) |> 
   mutate(date = paste(year, month, day, sep = "/")) |> 
