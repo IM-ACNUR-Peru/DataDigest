@@ -2086,6 +2086,35 @@
         "Built": "R 4.3.2; ; 2023-11-12 03:19:56 UTC; windows"
       }
     },
+    "httr2": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "httr2",
+        "Title": "Perform HTTP Requests and Process the Responses",
+        "Version": "1.0.0",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", role = c(\"aut\", \"cre\")),\n    person(\"RStudio\", role = c(\"cph\", \"fnd\")),\n    person(\"Maximilian\", \"Girlich\", role = \"ctb\")\n  )",
+        "Description": "Tools for creating and modifying HTTP requests, then\n    performing them and processing the results. 'httr2' is a modern\n    re-imagining of 'httr' that uses a pipe-based interface and solves\n    more of the problems that API wrapping packages face.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://httr2.r-lib.org, https://github.com/r-lib/httr2",
+        "BugReports": "https://github.com/r-lib/httr2/issues",
+        "Depends": "R (>= 3.6)",
+        "Imports": "cli (>= 3.0.0), curl (>= 5.1.0), glue, lifecycle, magrittr,\nopenssl, R6, rappdirs, rlang (>= 1.1.0), vctrs (>= 0.6.3),\nwithr",
+        "Suggests": "askpass, bench, clipr, covr, docopt, httpuv, jose, jsonlite,\nknitr, rmarkdown, testthat (>= 3.1.8), tibble, webfakes, xml2",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "NeedsCompilation": "no",
+        "Packaged": "2023-11-13 16:55:37 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre],\n  RStudio [cph, fnd],\n  Maximilian Girlich [ctb]",
+        "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2023-11-14 13:53:23 UTC",
+        "Built": "R 4.3.2; ; 2023-12-19 03:26:13 UTC; windows"
+      }
+    },
     "ids": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -4613,6 +4642,9 @@
     "20240110_Weekly_Data_Digest.pdf": {
       "checksum": "88d6ee095dc128a86f20fdf7cc77428f"
     },
+    "20240121_Weekly_Data_Digest.pdf": {
+      "checksum": "0437b61a25f3d1bfbbc7ca2c2abdba3f"
+    },
     "all_data_dtm.csv": {
       "checksum": "ebedca935b40972e506a93798a7d47f4"
     },
@@ -4663,15 +4695,6 @@
     },
     "data/enaho/2018/ENAHO-TABLA-CNO-2015.sav": {
       "checksum": "734801de54a15752e1b70d3de874836e"
-    },
-    "data/enaho/2018/ENAHO_DefiniciónValoresMonetariosBasedeDatos.pdf": {
-      "checksum": "432e733ce3a554eb7ed378387c383557"
-    },
-    "data/enaho/2018/ENAHO_DefinicinValoresMonetariosBasedeDatos.pdf": {
-      "checksum": "432e733ce3a554eb7ed378387c383557"
-    },
-    "data/enaho/2018/ENAHO_Estratificación del Marco.pdf": {
-      "checksum": "ea1453307497c206e7cb36c87e4872d9"
     },
     "data/enaho/2018/Enaho01-2018-100.sav": {
       "checksum": "d7aaa39bb59166d2cfef26ce289d0fd8"
@@ -4745,9 +4768,6 @@
     "data/enaho/2022/ENAHO-TABLA-UBIGEO.sav": {
       "checksum": "e920f8850cb312ef33a2ce4bbcfff1f4"
     },
-    "data/enaho/2022/ENAHO_DefiniciónValoresMonetariosBasedeDatos.pdf": {
-      "checksum": "3aa5598be85888d0e4c4bf5fcf227f02"
-    },
     "data/enaho/2022/Enaho01-2022-100.sav": {
       "checksum": "5f9286f98ab75ba513c243b5ee10e298"
     },
@@ -4769,9 +4789,6 @@
     "data/enaho/2022/Enaho01a-2022-500.sav": {
       "checksum": "db884d63b99862f6b3e8e59bc227daa2"
     },
-    "data/enaho/2022/Estratificación del Marco.pdf": {
-      "checksum": "21c8f8d2626262f36c49e8678cc3b1ae"
-    },
     "data/enaho/2022/FICHA TECNICA 2022.pdf": {
       "checksum": "71a452711d70fab5ab1e906835705848"
     },
@@ -4781,23 +4798,11 @@
     "data/enaho/2022/TABLA-UBIGEO-1874 DISTRITOS.sav": {
       "checksum": "26fb8f9538139906509b744520c1e6ba"
     },
-    "data/enpove/2018/ENPOVE_Capitulo 100 - Carctaerísticas de la Vivienda y del Hogar.sav.sav": {
-      "checksum": "af6881da13f47ef34de16113891fea10"
-    },
-    "data/enpove/2018/ENPOVE_Capitulo 200 - Carctaerísticas de los Residentes del Hogar.sav.sav": {
-      "checksum": "0d16c30a7513d0ed1b3604aa79f0aedc"
-    },
     "data/enpove/2018/ENPOVE_Capitulo 400 - Salud.sav.sav": {
       "checksum": "63abca41044af5bd62c0f8dc914d90b7"
     },
-    "data/enpove/2018/ENPOVE_Capitulo 500 - Educación.sav.sav": {
-      "checksum": "cf75eb6499a4cabb18c5f857c0bc6714"
-    },
     "data/enpove/2018/ENPOVE_Capitulo 600 - Empleo.sav.sav": {
       "checksum": "4abbc43e454caa55ff97f95970939450"
-    },
-    "data/enpove/2018/ENPOVE_Capitulo 700 - Discriminación.sav.sav": {
-      "checksum": "58bcf352073b83fabab2e612c78aadc0"
     },
     "data/enpove/2022/2-Cuestionario-ENPOVE.pdf": {
       "checksum": "77fe570ce88f0d10d3f6a1107155b2a7"
@@ -4808,11 +4813,11 @@
     "data/enpove/2022/4-Diccionario_de_Variables200-800-ENPOVE.pdf": {
       "checksum": "d7511e306ecc3b7a66547e2e5a5bca6e"
     },
-    "data/enpove/2022/ENPOVE2022_V_100 Características de la vivienda y del hogar.sav": {
-      "checksum": "3b7fc43e652e3ef0879018781fcb4daa"
-    },
     "data/enpove/2022/ENPOVE2022_V_200-300-400-500-600-700-800.sav": {
       "checksum": "b4e1254e30efde246e8a48bcd2321200"
+    },
+    "dtm.csv": {
+      "checksum": "c1eb8a519a5081121e47c6ef4c3d21a0"
     },
     "dtm.png": {
       "checksum": "ab1c7a06b2cd53e3f6ba7115e295707b"
@@ -4820,14 +4825,26 @@
     "dtm_national.json": {
       "checksum": "ed6df2190702b6f7fa4dbf61ff54214b"
     },
+    "dtm_national_new.json": {
+      "checksum": "4d2d8f53a53822677b534ec71d23ca2b"
+    },
     "dtm_puno.json": {
       "checksum": "3c11635616adf4469ae04c2ddeaa79a9"
+    },
+    "dtm_puno_new.json": {
+      "checksum": "e950dce9e2b8ac380a450226b4a3fd02"
     },
     "dtm_tacna.json": {
       "checksum": "5e83d146200ea02528575a142c5a7b62"
     },
+    "dtm_tacna_new.json": {
+      "checksum": "963ba2058b2541df09de6f8cab7e07b1"
+    },
     "dtm_tumbes.json": {
       "checksum": "c9cafbfbfff6acc92bc62a4168189f36"
+    },
+    "dtm_tumbes_new.json": {
+      "checksum": "099afb3e6895490fb32ebfe52c4ba7a1"
     },
     "dtm2.png": {
       "checksum": "ca2a4ef627be73ad1d647e081c5601e3"
@@ -4837,6 +4854,9 @@
     },
     "leaflet-viewport.png": {
       "checksum": "e2d66ae104791920147c1332348da38e"
+    },
+    "Mistral_LMStudio.R": {
+      "checksum": "ca3ae5718b0e74f1b9f3746df9390577"
     },
     "README.md": {
       "checksum": "a2e2393b2779f4bb054f7cedaf36426e"
@@ -4884,13 +4904,13 @@
       "checksum": "0de976540f95b889bb052871a37e02aa"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "f43b6038a4e9bb2385f6d42b92ee129f"
+      "checksum": "8641ef1f6a7accc11fc94600411f0ec4"
     },
     "Weekly_Data_Digest.pdf": {
-      "checksum": "da13101c99a63236a3e73ba11f0a198c"
+      "checksum": "5919849a710a3fdbcd0e2e0cdc4e7707"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "5c446bfc0dd0fa06b4d94f8124aae5fb"
+      "checksum": "2c4af455f2808e3e26aa1077e0cd378e"
     }
   },
   "users": null
