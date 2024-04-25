@@ -25,28 +25,85 @@ library(treemapify)
 library(gt)
 library(httr)
 
-#load("token.rds")
+date_today <- Sys.Date() - 1
 
-date_start_filter <- Sys.Date() - 7
+date_start_filter <- Sys.Date() - 8
 
-date_start_filter_month <- Sys.Date() - 30
+date_start_filter_month <- Sys.Date() - 31
 
 kobo_setup(url = "https://kobo.unhcr.org",
            token = Sys.getenv('KOBO_API_KEY'))
 
 
-# Monitoreo de fronteras
+# RUDAH 2023
 x <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
-main <- x$main
-member2 <- x$member
+main_2023 <- x$main |> 
+  select("today":"perfil", "tipo_orientacion":"paisprevio", "paisdestino", "cri_dis_balde":"cri_dis_teclado", "kit_dis_kit_abrigo_bebe":"kit_dis_other", "member_count")
+member2_2023 <- x$member
+
+
+# RUDAH 2024
+x <- kobo_submissions("aMRCvAGEpGSMsvS4A2VMzC")
+main_2024 <- x$main |> 
+  rename(
+      qt_kit01 = qt_kit_t_familiar,
+      qt_kit02 = qt_kit_t_adulto,
+      qt_kit03 = qt_kit_t_extramujer,
+      qt_kit04 = qt_kit_t_NNA,
+      qt_kit05 = qt_kit_t_bebe,
+      qt_kit06 = qt_kit_a_adulto,
+      qt_kit07 = qt_kit_a_nna,
+      qt_kit08 = qt_kit_a_bebe,
+      qt_kit09 = qt_kit_re_familia,
+      qt_kit10 = qt_kit_re_nna,
+      qt_kit11 = qt_kit_re_sola,
+      qt_kit12 = qt_kit_re_bebe,
+      qt_kit15 = qt_kit_oficina,
+      qt_kit16 = qt_kit_escolar,
+      qt_kit16 = qt_kit_escolar,
+      
+      fi01 = qt_cri_frazada,
+      qt_cri02 = qt_cri_setcocina,
+      qt_cri03 = qt_cri_baldes,
+      qt_cri04 = qt_cri_galoneras,
+      qt_cri05 = qt_cri_sillaruedas,
+      qt_cri06 = qt_cri_bastones,
+      qt_cri07 = qt_cri_muletas,
+      qt_cri08 = qt_cri_botellasagua,
+      qt_cri09 = qt_cri_ropa_termica,
+      qt_cri10 = qt_cri_mosquitero,
+      qt_cri11 = qt_cri_colchoneta,
+      qt_cri12 = qt_cri_carpa,
+      qt_cri13 = qt_cri_jabones,
+      qt_cri14 = qt_cri_bidon,
+      qt_cri15 = qt_cri_papelhigienico,
+      qt_cri16 = qt_cri_libro_viaje,
+      qt_cri17 = qt_cri_libro_heroina,
+      qt_cri18 = qt_cri_libro_pabellon,
+      qt_cri19 = qt_cri_laptop,
+      qt_cri20 = qt_cri_teclado,
+      qt_cri21 = qt_cri_tablet,
+      qt_cri22 = qt_cri_sandalidas_crocs,
+      qt_cri23 = qt_cri_mochila,
+      qt_cri24 = qt_cri_panales
+  ) |> 
+  select("today":"perfil", "tipo_orientacion":"paisprevio", "paisdestino", "cri_dis_balde":"cri_dis_teclado", "kit_dis_kit_abrigo_bebe":"kit_dis_other", "member_count") |> 
+  mutate_at(vars(ori_gen_other), as.character)
+
+member2_2024 <- x$member
+
+main <- bind_rows(main_2023, main_2024)
+member2 <- bind_rows(member2_2023, member2_2024)
 
 main <- main |> 
+    dplyr::filter(fecha <= date_today) |> 
     dplyr::filter(test_real == "registro_real") |> 
     rename(today_rev = today) |> 
     rename(today = fecha)
 
 main_last_week <- main |> 
   dplyr::filter(today > date_start_filter) |>
+  dplyr::filter(today <= date_today) |> 
   dplyr::filter(grepl("mon_fro",kit_orientacion)) 
 
 names_per <- c('perfil')
@@ -92,7 +149,7 @@ main_last_month_puno <- main_last_month |>
 
 ```
 
-`r Sys.Date()`
+`r date_today`
 
 Boletín semanal para la operación ACNUR Perú.
 
@@ -104,8 +161,8 @@ url <- "https://wabi-north-europe-f-primary-api.analysis.windows.net/public/repo
 
 
 # National data
-query <- read_file("dtm_national.json")
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "29ff7276-829c-4746-b0e2-f731c49274e5"))
+query <- read_file("dtm_national_new_2.json")
+r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
 max_attempts <- 2000  # Set your desired maximum number of attempts
 attempts <- 0
@@ -161,8 +218,8 @@ nat_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 
 # Tacna data
-query <- read_file("dtm_tacna.json")
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "29ff7276-829c-4746-b0e2-f731c49274e5"))
+query <- read_file("dtm_tacna_new_2.json")
+r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
 max_attempts <- 2000  # Set your desired maximum number of attempts
 attempts <- 0
@@ -219,9 +276,9 @@ tacna_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 
 # Tumbes data
-query <- read_file("dtm_tumbes.json")
+query <- read_file("dtm_tumbes_new_2.json")
 
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "29ff7276-829c-4746-b0e2-f731c49274e5"))
+r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
 max_attempts <- 2000  # Set your desired maximum number of attempts
 attempts <- 0
@@ -278,9 +335,9 @@ tumbes_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 
 # Puno data
-query <- read_file("dtm_puno.json")
+query <- read_file("dtm_puno_new_2.json")
 
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "29ff7276-829c-4746-b0e2-f731c49274e5"))
+r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
 max_attempts <- 2000  # Set your desired maximum number of attempts
 attempts <- 0
@@ -432,7 +489,7 @@ ggplot(all_data_dtm, aes(
 
 
 
-Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiMjlmZjcyNzYtODI5Yy00NzQ2LWIwZTItZjczMWM0OTI3NGU1IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
+Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiMGQxYWMxYzItYzlmMi00MjAzLWE0YzgtNGNiNjczYjMzOTkwIiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
 
 \newpage
 
@@ -447,13 +504,13 @@ rudah <- main |>
 
 
 total_kits <- rudah |> 
- select("kit_dis_kit_abrigo_bebe":"kit_dis_other")  |>  
+ select("qt_kit01":"qt_kit_other")  |>  
   mutate_all(~coalesce(.,0)) |> 
   rowSums() |> 
   sum()
 
 total_cris <- rudah |> 
- select("cri_dis_balde":"cri_dis_teclado") |> 
+ select("qt_cri01":"qt_cri_other") |> 
  mutate_all(~coalesce(.,0)) |> 
  rowSums() |> 
  sum()
@@ -571,8 +628,13 @@ names_lug <- c('region')
 rudah[,names_lug] <- lapply(rudah[,names_lug] , to_factor)
 
 rudah_kits_cris_plot <- rudah |>
-  mutate(Kits = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |>
-  mutate(CRIs = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |>
+  select(region, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>  
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+   mutate(Kits = rowSums(across("qt_kit01":"qt_kit_other"))) |>
+  mutate(CRIs = rowSums(across("qt_cri01":"qt_cri_other"))) |>
   select("region", "Kits", "CRIs") |>
   group_by(region) |>
   summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
@@ -749,13 +811,13 @@ ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
 
 
 total_kits_cris_line <- rudah |> 
- select(today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>  
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("cri")), as.numeric) |>
-  mutate(Kits = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |>
-  mutate(CRIs = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |>
+ select(today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>  
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  mutate(Kits = rowSums(across("qt_kit01":"qt_kit_other"))) |>
+  mutate(CRIs = rowSums(across("qt_cri01":"qt_cri_other"))) |>
   select(today, Kits, CRIs) |> 
   group_by(today) |>
   summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
@@ -820,13 +882,13 @@ rudah_all <- main
 
 
 total_kits_all <- rudah_all |> 
- select("kit_dis_kit_abrigo_bebe":"kit_dis_other")  |>  
+ select("qt_kit01":"qt_kit_other")  |>  
   mutate_all(~coalesce(.,0)) |> 
   rowSums() |> 
   sum()
 
 total_cris_all <- rudah_all |> 
- select("cri_dis_balde":"cri_dis_teclado") |> 
+ select("qt_cri01":"qt_cri_other") |> 
  mutate_all(~coalesce(.,0)) |> 
  rowSums() |> 
  sum()
@@ -932,10 +994,15 @@ names_lug_all <- c('region')
 rudah_all[,names_lug_all] <- lapply(rudah_all[,names_lug_all] , to_factor)
 
 rudah_kits_cris_plot_all <- rudah_all |>
-  mutate(Kits = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |>
-  mutate(CRIs = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |>
+  select(region, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>  
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+   mutate(Kits = rowSums(across("qt_kit01":"qt_kit_other"))) |>
+  mutate(CRIs = rowSums(across("qt_cri01":"qt_cri_other"))) |>
   select("region", "Kits", "CRIs") |>
-  group_by(region) |>
+    group_by(region) |>
   summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
   pivot_longer(!region, names_to="Tipo", values_to="Total")
 
@@ -1065,17 +1132,38 @@ ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
 library(zoo)
 library(padr)
 
+## Downloading xls form
+xls <- kobo_form("a9Erto2aYbgJamz8vdrtJt") |> 
+  select(name, label) |> 
+  filter(grepl("qt_", name)) |> 
+  separate_wider_delim(label, delim = "*", names = c("Delete", "label"), too_many = "merge") |> 
+  separate_wider_delim(label, delim = "*", names = c("label", "Delete2"), too_many = "merge") |> 
+  mutate(across(label, str_replace, '\\$', '_')) |> 
+  mutate(across(label, str_replace, '\\{', '_')) |> 
+  mutate(across(label, str_replace, '\\}', '_')) |> 
+  mutate(across(label, str_replace, '__kit_other_', 'Kit (otro)')) |> 
+  mutate(across(label, str_replace, '__cri_other_', 'CRI (otro)')) |> 
+  mutate(label = str_trim(label)) |> 
+  select(name, label)
+
+
 ## Total trends CRIs and Kits national level
 kits_cris_list_trend_all <- rudah_all |>
-  select(today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("cri")), as.numeric) |>
-  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
-  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  select(today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(today, Kit_CRI, label, Total) |> 
+  rename("Tipo" = label) |>
+
+  # separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  # mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  # mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
   filter(Total != 0) |> 
   mutate_at(vars(Total), as.numeric) |>
   group_by(today, Kit_CRI) |> 
@@ -1227,16 +1315,18 @@ Promedio móvil (10 días) de distribuciones diarias de Kits (en azul) y CRIs (e
 
 ## First total trends by total kits and CRIs
 kits_cris_list_trend <- rudah_all |>
-  select(region, today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("cri")), as.numeric) |>
-  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
-  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
-  filter(Total != 0) |> 
+  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(region, today, Kit_CRI, label, Total) |> 
+  rename("Tipo" = label) |> 
+    filter(Total != 0) |> 
   mutate_at(vars(Total), as.numeric) |>
   group_by(region, today, Kit_CRI) |> 
   summarise_at(c("Total"), sum, na.rm = TRUE) |> 
@@ -1393,14 +1483,15 @@ Con desglose estimado por tipo de kit y CRI:
 
 ## Trends by Kits and CRIs
 kits_cris_list_trend_detail <- rudah_all |>
-  select(region, today, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-mutate_at(vars(starts_with("cri")), as.numeric) |>
-   group_by(region, today) |> 
-  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) 
+  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  group_by(region, today) |> 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
 
+  
 
 ## Adding min and max dates for missing values by region
 kits_cris_list_trend_detail_min <- kits_cris_list_trend_detail |> 
@@ -1418,32 +1509,36 @@ kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
   bind_rows(kits_cris_list_trend_detail_min) |> 
   bind_rows(kits_cris_list_trend_detail_max) |>
   pad(interval = "day", group = "region") |> 
-  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
   na.omit()|> 
   filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region) |> 
-  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), mean, na.rm = TRUE) |> 
-  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
             list(~. * projectiondays)) |> 
-  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
             list(~round(., digits = 0))) |> 
-  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
+    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(region, Kit_CRI, label, Total) |> 
+  rename("Detalle" = label) |> 
   filter(Total > 0) |> 
   pivot_wider(names_from = region, values_from = Total) |> 
   mutate_if(is.numeric , replace_na, replace = 0) |> 
-  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
-#  mutate(across(c('Detalle'), str_replace, '_', ' '))
-  mutate_all(funs(str_replace_all(., "_", " "))) |> 
-  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
-  mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
-  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
-  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
-  mutate_at(vars(3:last_col()), as.numeric) |>
+#   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+#   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+# #  mutate(across(c('Detalle'), str_replace, '_', ' '))
+#   mutate_all(funs(str_replace_all(., "_", " "))) |> 
+#   mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+#   mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
+#   mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
+#   mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+#   mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+#   mutate_at(vars(3:last_col()), as.numeric) |>
   mutate(Total = rowSums(across(3:last_col()))) |>
   filter(Total != 0) |> 
   arrange(Kit_CRI, Detalle) |> 
@@ -1525,13 +1620,15 @@ kits_cris_list_trend_detail_socios <- rudah_all |>
   dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "uv", "UV")) |> 
   dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
   dplyr::filter(tipo_socio != "other") |> 
-  select(region, today, organizacion, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("cri")), as.numeric) |>
-   group_by(region, today, organizacion) |> 
-  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), sum, na.rm = TRUE) 
+    select(region, today, organizacion, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  group_by(region, today, organizacion) |> 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
+
+  
 
 
 ## Adding min and max dates for missing values by region and organization
@@ -1554,27 +1651,32 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   complete(today = seq(min(today), max(today), by = "1 day")) %>%
   # pad(interval = "day") |>
   ungroup() |> 
-  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
   na.omit()|> 
   filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region, organizacion) |> 
-  summarise_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), mean, na.rm = TRUE) |> 
-  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
             list(~. * projectiondays)) |> 
-  mutate_at(vars("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
             list(~round(., digits = 0))) |> 
-  pivot_longer(cols = c("kit_dis_kit_abrigo_bebe":"cri_dis_teclado"), names_to="Tipo", values_to="Total") |>
-#  filter(Total > 0) |> 
-  mutate_if(is.numeric , replace_na, replace = 0) |> 
+    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(region, organizacion, Kit_CRI, label, Total) |> 
+  rename("Detalle" = label) |> 
+    filter(Total > 0) |> 
+    #rowSums(na.rm = TRUE) |> 
   pivot_wider(names_from = region, values_from = Total) |> 
-  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
-#  mutate(across(c('Detalle'), str_replace, '_', ' '))
-  mutate_all(funs(str_replace_all(., "_", " "))) |> 
-  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
+#   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+#   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+# #  mutate(across(c('Detalle'), str_replace, '_', ' '))
+#   mutate_all(funs(str_replace_all(., "_", " "))) |> 
+  # mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
   mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
   mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
   mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
