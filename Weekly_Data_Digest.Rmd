@@ -109,20 +109,23 @@ main_last_week <- main |>
 names_per <- c('perfil')
 main_last_week[,names_per] <- lapply(main_last_week[,names_per] , to_factor)
 
+names_reg <- c('region')
+main_last_week[,names_reg] <- lapply(main_last_week[,names_reg] , to_factor)
+
 main_last_week_tumbes <- main_last_week |> 
-  filter(lugar_monitoreo == "tumbes")
+  filter(region == "Tumbes")
 
 main_last_week_tacna <- main_last_week |> 
-  filter(lugar_monitoreo == "tacna")
+  filter(lugar_monitoreo == "Tacna")
 
 main_last_week_mdd <- main_last_week |> 
-  filter(lugar_monitoreo == "mdd")
+  filter(lugar_monitoreo == "Madre de Dios")
 
 main_last_week_lima <- main_last_week |> 
-  filter(lugar_monitoreo == "lima")
+  filter(lugar_monitoreo == "Lima")
 
 main_last_week_puno <- main_last_week |> 
-  filter(lugar_monitoreo == "puno")
+  filter(lugar_monitoreo == "Puno")
 
 main_last_month <- main |> 
   dplyr::filter(today > date_start_filter_month) |>
@@ -131,20 +134,24 @@ main_last_month <- main |>
 names_per_month <- c('perfil')
 main_last_month[,names_per_month] <- lapply(main_last_month[,names_per_month] , to_factor)
 
+names_reg <- c('region')
+main_last_month[,names_reg] <- lapply(main_last_month[,names_reg] , to_factor)
+
+
 main_last_month_tumbes <- main_last_month |> 
-  filter(lugar_monitoreo == "tumbes")
+  filter(region == "Tumbes")
 
 main_last_month_tacna <- main_last_month |> 
-  filter(lugar_monitoreo == "tacna")
+  filter(region == "Tacna")
 
 main_last_month_mdd <- main_last_month |> 
-  filter(lugar_monitoreo == "mdd")
+  filter(region == "Madre de Dios")
 
 main_last_month_lima <- main_last_month |> 
-  filter(lugar_monitoreo == "lima")
+  filter(region == "Lima")
 
 main_last_month_puno <- main_last_month |> 
-  filter(lugar_monitoreo == "puno")
+  filter(region == "Puno")
 
 
 ```
@@ -161,7 +168,11 @@ url <- "https://wabi-north-europe-f-primary-api.analysis.windows.net/public/repo
 
 
 # National data
-query <- read_file("dtm_national_new_2.json")
+
+query <- read_file("dtm_national_new_2.json") |> 
+  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-04-18", as.character(Sys.Date()))
+
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
 max_attempts <- 2000  # Set your desired maximum number of attempts
@@ -218,7 +229,10 @@ nat_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 
 # Tacna data
-query <- read_file("dtm_tacna_new_2.json")
+query <- read_file("dtm_tacna_new_2.json") |> 
+  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-04-18", as.character(Sys.Date()))
+
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
 max_attempts <- 2000  # Set your desired maximum number of attempts
@@ -276,7 +290,9 @@ tacna_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 
 # Tumbes data
-query <- read_file("dtm_tumbes_new_2.json")
+query <- read_file("dtm_tumbes_new_2.json") |> 
+  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-04-18", as.character(Sys.Date()))
 
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
@@ -335,7 +351,9 @@ tumbes_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 
 # Puno data
-query <- read_file("dtm_puno_new_2.json")
+query <- read_file("dtm_puno_new_2.json") |> 
+  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-04-18", as.character(Sys.Date()))
 
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
@@ -1242,7 +1260,7 @@ ggplot(kits_cris_list_trend_all, aes(
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="1 month"
+  scale_x_date(date_labels="%b %Y", date_breaks  ="2 month"
                # limits = c(min(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+30)
                ) +
   scale_y_continuous(
@@ -1375,7 +1393,7 @@ ggplot(kits_cris_list_trend, aes(
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
  # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="1 month") +
+  scale_x_date(date_labels="%b %Y", date_breaks  ="2 month") +
   scale_y_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(n = 4),
@@ -2100,7 +2118,7 @@ ggplot(rudah_ori_plot_all, aes(
 
 ## Monitoreo de fronteras
 
-Durante el último mes se entrevistaron `r nrow(main_last_month)` grupos (`r sum(main_last_month$miembros)` personas). Entre ellos, `r nrow(main_last_month_tumbes)` en Tumbes, `r nrow(main_last_month_tacna)` en Tacna, `r nrow(main_last_month_puno)` en Puno, y `r nrow(main_last_month_mdd)` en Madre de Dios. Durante los últimos 7 días se entrevisaron a `r nrow(main_last_week)` grupos.
+Durante el último mes se entrevistaron `r nrow(main_last_month)` grupos (`r sum(main_last_month$member_count)` personas). Entre ellos, `r nrow(main_last_month_tumbes)` en Tumbes, `r nrow(main_last_month_tacna)` en Tacna, `r nrow(main_last_month_puno)` en Puno, y `r nrow(main_last_month_mdd)` en Madre de Dios. Durante los últimos 7 días se entrevisaron a `r nrow(main_last_week)` grupos.
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.width=7,fig.height=3.9}
 
