@@ -170,8 +170,8 @@ url <- "https://wabi-north-europe-f-primary-api.analysis.windows.net/public/repo
 # National data
 
 query <- read_file("dtm_national_new_2.json") |> 
-  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-04-18", as.character(Sys.Date()))
+  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-05-30", as.character(Sys.Date()))
 
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
@@ -230,8 +230,8 @@ nat_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 # Tacna data
 query <- read_file("dtm_tacna_new_2.json") |> 
-  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-04-18", as.character(Sys.Date()))
+  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-05-30", as.character(Sys.Date()))
 
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
@@ -291,8 +291,8 @@ tacna_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 # Tumbes data
 query <- read_file("dtm_tumbes_new_2.json") |> 
-  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-04-18", as.character(Sys.Date()))
+  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-05-30", as.character(Sys.Date()))
 
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
@@ -352,8 +352,8 @@ tumbes_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
 
 # Puno data
 query <- read_file("dtm_puno_new_2.json") |> 
-  str_replace("2023-09-01", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-04-18", as.character(Sys.Date()))
+  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
+  str_replace("2024-05-30", as.character(Sys.Date()))
 
 r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
 
