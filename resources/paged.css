@@ -360,8 +360,31 @@ table > thead > * > * {
 /*** helper ***/
  .main-container {max-width: 100%;}
  .row {display: flex;}
- .column {flex: 50%;}
-
+.column {
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+  }
+  .column-50 {
+    flex: 0 0 50%;
+  }
+  .column-30 {
+    flex: 0 0 30%;
+  }
+  .column-5 {
+    flex: 0 0 5%;
+  }
+  .column-45 {
+    flex: 0 0 45%;
+  }
+  .column-70 {
+    flex: 0 0 70%;
+  }
+  .column-33 {
+    flex: 0 0 33%;
+  }
+  .column-66 {
+    flex: 0 0 66%;
+  }
 
 .img75, .img66,
 .img50, .img33,

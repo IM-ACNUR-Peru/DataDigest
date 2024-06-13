@@ -4721,6 +4721,9 @@
     "dtm_national_new_VEN.json": {
       "checksum": "930d6de208c053ec6d0788bd513724d6"
     },
+    "dtm_national_VEN.json": {
+      "checksum": "6135e5accd574d25c801fff393c60eaf"
+    },
     "dtm_puno.json": {
       "checksum": "3c11635616adf4469ae04c2ddeaa79a9"
     },
@@ -4732,6 +4735,9 @@
     },
     "dtm_puno_new_VEN.json": {
       "checksum": "736f9ed6d036c3f87ad7649687fcd3a1"
+    },
+    "dtm_puno_VEN.json": {
+      "checksum": "a0fbe4118d1894b2834361abab97451d"
     },
     "dtm_tacna.json": {
       "checksum": "5e83d146200ea02528575a142c5a7b62"
@@ -4745,6 +4751,9 @@
     "dtm_tacna_new_VEN.json": {
       "checksum": "110bf9ba16d0596ff8b9f7ac1e67b623"
     },
+    "dtm_tacna_VEN.json": {
+      "checksum": "d5684d6e2da9ca504fab2fd1969d8e81"
+    },
     "dtm_tumbes.json": {
       "checksum": "c9cafbfbfff6acc92bc62a4168189f36"
     },
@@ -4757,6 +4766,9 @@
     "dtm_tumbes_new_VEN.json": {
       "checksum": "7be6695d002d9c0ba389acdd437242b1"
     },
+    "dtm_tumbes_VEN.json": {
+      "checksum": "60f128e4701149dfef4da03eae80e17c"
+    },
     "dtm2.png": {
       "checksum": "ca2a4ef627be73ad1d647e081c5601e3"
     },
@@ -4767,7 +4779,7 @@
       "checksum": "e2d66ae104791920147c1332348da38e"
     },
     "README.md": {
-      "checksum": "a2e2393b2779f4bb054f7cedaf36426e"
+      "checksum": "24841527cb0e575636e48969ebaf036d"
     },
     "resources/back-cover.svg": {
       "checksum": "8ad0c5d49649d7cd39772b8add8b2a64"
@@ -4791,7 +4803,7 @@
       "checksum": "f7b487123a16be1723e0f62dd0e649f1"
     },
     "resources/paged.css": {
-      "checksum": "04ccaf08f4ffb8976c95821e3bdaa48d"
+      "checksum": "45e6023bb8a2de78d3c4f3ba6b9f9eef"
     },
     "resources/unhcr_logo_blue.svg": {
       "checksum": "bb2e078fb0ef665509df437e89075320"
@@ -4812,13 +4824,19 @@
       "checksum": "0de976540f95b889bb052871a37e02aa"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "760a6749821259b2835950d2d996516e"
+      "checksum": "304461f5676ba1cf03b78457638d0539"
     },
     "Weekly_Data_Digest.pdf": {
-      "checksum": "b4cb2765ea4416baad05a107aebcdf78"
+      "checksum": "81c82e32db737545b48bcbc83ed9a033"
+    },
+    "Weekly_Data_Digest.rmarkdown": {
+      "checksum": "3d9791c1760344003b6babe9fd08fa2d"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "6d65faeffd836e43e7c0b941c999a19d"
+      "checksum": "4030bfc1290f0c90587884250fb018c1"
+    },
+    "Weekly_Data_Digest_pre.pdf": {
+      "checksum": "15a3f1bd09d5208fa0920128104f7ecc"
     }
   },
   "users": null

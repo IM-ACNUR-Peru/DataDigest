@@ -24,6 +24,10 @@ library(kableExtra)
 library(treemapify)
 library(gt)
 library(httr)
+library(ggrepel)
+library(tools)
+library(stringr)
+library(htmltools)
 
 date_today <- Sys.Date() - 1
 
@@ -36,15 +40,15 @@ kobo_setup(url = "https://kobo.unhcr.org",
 
 
 # RUDAH 2023
-x <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
-main_2023 <- x$main |> 
-  select("today":"perfil", "tipo_orientacion":"paisprevio", "paisdestino", "cri_dis_balde":"cri_dis_teclado", "kit_dis_kit_abrigo_bebe":"kit_dis_other", "member_count")
-member2_2023 <- x$member
+ x_2023 <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
+main_2023 <- x_2023$main |> 
+  select("today":"perfil", "tipo_orientacion":"kit_other",  "sign":"paisprevio", "paisdestino", starts_with("cri_dis"), starts_with("kit_dis"), starts_with("qt_kit"), starts_with("qt_cri"), "member_count")
+member2_2023 <- x_2023$member
 
 
 # RUDAH 2024
-x <- kobo_submissions("aMRCvAGEpGSMsvS4A2VMzC")
-main_2024 <- x$main |> 
+ x_2024 <- kobo_submissions("aMRCvAGEpGSMsvS4A2VMzC")
+main_2024 <- x_2024$main |> 
   rename(
       qt_kit01 = qt_kit_t_familiar,
       qt_kit02 = qt_kit_t_adulto,
@@ -87,10 +91,10 @@ main_2024 <- x$main |>
       qt_cri23 = qt_cri_mochila,
       qt_cri24 = qt_cri_panales
   ) |> 
-  select("today":"perfil", "tipo_orientacion":"paisprevio", "paisdestino", "cri_dis_balde":"cri_dis_teclado", "kit_dis_kit_abrigo_bebe":"kit_dis_other", "member_count") |> 
+  select("today":"perfil", "tipo_orientacion":"kit_other", "TotalKit":"paisprevio",  "paisdestino", starts_with("cri_dis"), starts_with("kit_dis"), starts_with("qt_kit"), starts_with("qt_cri"), "member_count") |> 
   mutate_at(vars(ori_gen_other), as.character)
 
-member2_2024 <- x$member
+member2_2024 <- x_2024$member
 
 main <- bind_rows(main_2023, main_2024)
 member2 <- bind_rows(member2_2023, member2_2024)
@@ -162,53 +166,22 @@ Boletín semanal para la operación ACNUR Perú.
 
 ## Flujos en frontera
 
-```{r dpi = 200, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.width=7}
+```{r pbi_scraping, dpi = 200, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height=3.5}
 
 url <- "https://wabi-north-europe-f-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true"
 
+# Dashboard data
 
-# National data
-
-query <- read_file("dtm_national_new_2.json") |> 
+pbi <- function(file, location, pob) {
+  query <- read_file(file) |> 
   str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
   str_replace("2024-05-30", as.character(Sys.Date()))
-
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
-
-max_attempts <- 2000  # Set your desired maximum number of attempts
-attempts <- 0
-
-status_code <- 0
-
-while (status_code != 200 && attempts < max_attempts) {
-  attempts <- attempts + 1  # Increment the attempts counter
   
-  # Make the POST request
-  r <- POST(url, body = query)
+  r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
   
-  # Extract the status_code from the response
-  status_code <- r$status_code
-  
-  # Check if the status_code is not equal to 200
-  if (status_code != 200) {
-    cat("Attempt", attempts, "failed with status code:", status_code, "\n")
-    
-    # Add a delay before retrying to avoid excessive requests
-    Sys.sleep(5)  # Adjust the duration of sleep as needed
-  }
-}
+  ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
 
-if (status_code == 200) {
-  cat("Request successful with status code:", status_code, "\n")
-  # Process the response as needed
-} else {
-  cat("Maximum number of attempts reached. Last status code:", status_code, "\n")
-  # Handle the case when the maximum number of attempts is reached
-}
-
-ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
-
-nat_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
+  df <- ds$PH[[1]]$DM0[[1]] |> 
   select(C, X) |> 
   unnest(cols = X) |> 
   mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
@@ -225,193 +198,26 @@ nat_data_dtm <- ds$PH[[1]]$DM0[[1]] |>
   fill(year, month) |> 
   select(year, month, day, M1, direction) |> 
    pivot_wider(names_from = direction, values_from = M1) |> 
-  mutate(level = "Nacional")
-
-
-# Tacna data
-query <- read_file("dtm_tacna_new_2.json") |> 
-  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-05-30", as.character(Sys.Date()))
-
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
-
-max_attempts <- 2000  # Set your desired maximum number of attempts
-attempts <- 0
-
-status_code <- 0
-
-while (status_code != 200 && attempts < max_attempts) {
-  attempts <- attempts + 1  # Increment the attempts counter
+  mutate(level = location) |> 
+    mutate(pop = pob)
   
-  # Make the POST request
-  r <- POST(url, body = query)
-  
-  # Extract the status_code from the response
-  status_code <- r$status_code
-  
-  # Check if the status_code is not equal to 200
-  if (status_code != 200) {
-    cat("Attempt", attempts, "failed with status code:", status_code, "\n")
-    
-    # Add a delay before retrying to avoid excessive requests
-    Sys.sleep(5)  # Adjust the duration of sleep as needed
-  }
+  df
 }
 
-if (status_code == 200) {
-  cat("Request successful with status code:", status_code, "\n")
-  # Process the response as needed
-} else {
-  cat("Maximum number of attempts reached. Last status code:", status_code, "\n")
-  # Handle the case when the maximum number of attempts is reached
-}
+nat_data_dtm <- pbi("dtm_national_new_2.json", "Nacional", "Total")
+tacna_data_dtm <- pbi("dtm_tacna_new_2.json", "Tacna", "Total")
+tumbes_data_dtm <- pbi("dtm_tumbes_new_2.json", "Tumbes", "Total")
+puno_data_dtm <- pbi("dtm_puno_new_2.json", "Puno", "Total")
 
+nat_data_dtm_ven <- pbi("dtm_national_VEN.json", "Nacional", "Ven")
+tacna_data_dtm_ven <- pbi("dtm_tacna_VEN.json", "Tacna", "Ven")
+tumbes_data_dtm_ven <- pbi("dtm_tumbes_VEN.json", "Tumbes", "Ven")
+puno_data_dtm_ven <- pbi("dtm_puno_VEN.json", "Puno", "Ven")
 
-ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
-
-tacna_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
-  select(C, X) |> 
-  unnest(cols = X) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
-  mutate(across(c('C'), substr, 3, nchar(C))) |> 
-  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
-  select(C, M1, direction) |> 
-  separate(C,
-             into = c("year", "month", "day", "whatever"), 
-                             sep = ",", 
-                             fill = "left") |> 
-  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
-  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
-  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
-  fill(year, month) |> 
-  select(year, month, day, M1, direction) |> 
-   pivot_wider(names_from = direction, values_from = M1) |> 
-  mutate(level = "Tacna")
-
-
-# Tumbes data
-query <- read_file("dtm_tumbes_new_2.json") |> 
-  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-05-30", as.character(Sys.Date()))
-
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
-
-max_attempts <- 2000  # Set your desired maximum number of attempts
-attempts <- 0
-
-status_code <- 0
-
-while (status_code != 200 && attempts < max_attempts) {
-  attempts <- attempts + 1  # Increment the attempts counter
-  
-  # Make the POST request
-  r <- POST(url, body = query)
-  
-  # Extract the status_code from the response
-  status_code <- r$status_code
-  
-  # Check if the status_code is not equal to 200
-  if (status_code != 200) {
-    cat("Attempt", attempts, "failed with status code:", status_code, "\n")
-    
-    # Add a delay before retrying to avoid excessive requests
-    Sys.sleep(5)  # Adjust the duration of sleep as needed
-  }
-}
-
-if (status_code == 200) {
-  cat("Request successful with status code:", status_code, "\n")
-  # Process the response as needed
-} else {
-  cat("Maximum number of attempts reached. Last status code:", status_code, "\n")
-  # Handle the case when the maximum number of attempts is reached
-}
-
-
-ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
-
-tumbes_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
-  select(C, X) |> 
-  unnest(cols = X) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
-  mutate(across(c('C'), substr, 3, nchar(C))) |> 
-  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
-  select(C, M1, direction) |> 
-  separate(C,
-             into = c("year", "month", "day", "whatever"), 
-                             sep = ",", 
-                             fill = "left") |> 
-  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
-  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
-  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
-  fill(year, month) |> 
-  select(year, month, day, M1, direction) |> 
-   pivot_wider(names_from = direction, values_from = M1) |> 
-  mutate(level = "Tumbes")
-
-
-# Puno data
-query <- read_file("dtm_puno_new_2.json") |> 
-  str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
-  str_replace("2024-05-30", as.character(Sys.Date()))
-
-r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
-
-max_attempts <- 2000  # Set your desired maximum number of attempts
-attempts <- 0
-
-status_code <- 0
-
-while (status_code != 200 && attempts < max_attempts) {
-  attempts <- attempts + 1  # Increment the attempts counter
-  
-  # Make the POST request
-  r <- POST(url, body = query)
-  
-  # Extract the status_code from the response
-  status_code <- r$status_code
-  
-  # Check if the status_code is not equal to 200
-  if (status_code != 200) {
-    cat("Attempt", attempts, "failed with status code:", status_code, "\n")
-    
-    # Add a delay before retrying to avoid excessive requests
-    Sys.sleep(5)  # Adjust the duration of sleep as needed
-  }
-}
-
-if (status_code == 200) {
-  cat("Request successful with status code:", status_code, "\n")
-  # Process the response as needed
-} else {
-  cat("Maximum number of attempts reached. Last status code:", status_code, "\n")
-  # Handle the case when the maximum number of attempts is reached
-}
-
-ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
-
-puno_data_dtm <- ds$PH[[1]]$DM0[[1]] |> 
-  select(C, X) |> 
-  unnest(cols = X) |> 
-  mutate(direction = rep_len(c("entradas", "salidas"), n())) |>
-  mutate(across(c('C'), substr, 3, nchar(C))) |> 
-  mutate(across(c('C'), substr, 1, nchar(C)-1)) |> 
-  select(C, M1, direction) |> 
-  separate(C,
-             into = c("year", "month", "day", "whatever"), 
-                             sep = ",", 
-                             fill = "left") |> 
-  mutate(year = str_replace_all(year, "[^A-Za-z0-9]", "")) |> 
-  mutate(month = str_replace_all(month, "[^A-Za-z0-9]", "")) |> 
-  mutate(day = str_replace_all(day, "[^A-Za-z0-9]", "")) |> 
-  fill(year, month) |> 
-  select(year, month, day, M1, direction) |> 
-   pivot_wider(names_from = direction, values_from = M1) |> 
-  mutate(level = "Puno")
 
 # All together now!
 
-all_data_dtm <- bind_rows(nat_data_dtm, tacna_data_dtm, tumbes_data_dtm, puno_data_dtm) |> 
+all_data_dtm <- bind_rows(nat_data_dtm, tacna_data_dtm, tumbes_data_dtm, puno_data_dtm, nat_data_dtm_ven, tacna_data_dtm_ven, tumbes_data_dtm_ven, puno_data_dtm_ven) |> 
   mutate(across('month', str_replace, 'enero', '01')) |> 
   mutate(across('month', str_replace, 'febrero', '02')) |> 
   mutate(across('month', str_replace, 'marzo', '03')) |> 
@@ -428,86 +234,211 @@ all_data_dtm <- bind_rows(nat_data_dtm, tacna_data_dtm, tumbes_data_dtm, puno_da
   mutate(day = if_else(nchar(day) == 2, day, paste("0", day, sep = ""))) |> 
   mutate(date = paste(year, month, day, sep = "/")) |> 
   mutate(date=as.Date(date, format = "%Y/%m/%d"))  |> 
-  select(date, entradas, salidas, level) |> 
+  select(date, entradas, salidas, level, pop) |> 
   pivot_longer(cols = c(entradas, salidas), names_to = "Tipo", values_to = "Total") |> 
   mutate(date_text = format(date, "%d/%m")) |> 
-  as.data.frame()
+  as.data.frame() |> 
+  group_by(date, level, Tipo, date_text) |> 
+  pivot_wider(names_from = pop, values_from = Total) |> 
+  mutate(Total = replace(Total, date == "2024-05-29" & Tipo == "salidas" & level == "Tumbes", 267)) |> 
+   mutate(Ven = replace(Ven, date == "2024-05-29" & Tipo == "entradas" & level == "Puno", 21)) |> 
+  mutate(Otras = Total - Ven) 
 
 
-library(ggrepel)
-library(tools)
-library(stringr)
+
+first_date <- all_data_dtm |> 
+  filter(date > max(all_data_dtm$date)-23)  
+
+start_date <- min(first_date$date)
+
+last_data_dtm <- all_data_dtm |> 
+    filter(date >= start_date)
 
 # Plot
-ggplot(all_data_dtm, aes(
+ggplot(last_data_dtm, 
+       aes(
   x = date,
   y = Total,
   color = Tipo
 )) +
-    annotate("rect", xmin = max(all_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
+    annotate("rect", xmin = max(last_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
   geom_line(size = 0.7) +
+  geom_point(size = 2) +
   labs(
  #   title = "Flujos en frontera",
     y = "Personas observadas",
     caption = "Fuente: Conteos DTM OIM"
   ) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="2 months",
-               limits = c(min(all_data_dtm$date), max(all_data_dtm$date)+80)
-               ) +
-   scale_y_continuous(
+  scale_x_continuous(
+    breaks = last_data_dtm$date,
+#    limits = c(start_date, max(all_data_dtm$date)+7)
+    labels = format(last_data_dtm$date, "%d-%b")
+  ) +
+  # scale_x_date(
+  #   date_labels="%b %Y", 
+  #   date_breaks  = all_data_dtm$date,
+  #              limits = c(start_date, max(all_data_dtm$date)+7)
+  #              ) +
+  coord_cartesian(clip = "off") +
+  facet_wrap(~ level, ncol = 2, scales='free') +
+  scale_y_continuous(
     expand = expansion(c(0, 0.1)),
     breaks = pretty_breaks(n = 4),
     labels = label_number(scale_cut = cut_short_scale())
-#    limits = c(0, ymax_kits_cris_list_trend)
+#    limits = c(0, max(last_data_dtm$Total) * 1.1)
   ) +
   scale_color_unhcr_d(
     palette = "pal_unhcr",
     nmax = 10,
     order = c(7, 1)
   ) +
-  coord_cartesian(clip = "off") +
-  facet_wrap(~ level, ncol = 1, scales='free') +
-   geom_text_repel(
-    data = subset(all_data_dtm, date == max(date)),
-    aes(label = sprintf("%s %s (%s)", comma(Total), toTitleCase(Tipo), toTitleCase(date_text))),
-    xlim = as.Date(c(max(all_data_dtm$date), max(all_data_dtm$date)+50)),
+  geom_text_repel(
+    aes(label = Total),
     size = 3,
-    hjust = -2,
-    direction = "y",
-    box.padding = 0.5,
-    nudge_x = 2,
-    segment.color = NA,
-    show.legend = FALSE
+ #   hjust = -2,
+     direction = "y",
+     box.padding = unit(1, "lines"),
+     point.padding = unit(1, "lines"),
+     segment.color = NA,
+     min.segment.length = 0
+    # nudge_y = 2
+    # segment.color = NA,
+    # show.legend = FALSE
   ) +
+  # geom_text(
+  #   aes(label = Total),
+  #   nudge_x = 0.25,
+  #   nudge_y = 20,
+  #   check_overlap = TRUE,
+  #   size = 7
+  # ) +
   theme(
      panel.background = element_rect(fill = "white"),
  #   panel.grid = element_blank(),
-     panel.grid.major.y = element_line(colour = "grey"),
+     panel.grid.major.y = element_blank(),
      panel.grid.major.x = element_blank(),
     axis.ticks = element_blank(),
     strip.background = element_rect(colour = "white", fill = "white"),
-    axis.text.x = element_text(size=8,
+    axis.text.x = element_text(size=9,
         family="Lato"),
-    axis.text.y = element_text(size=10,
-        family="Lato"),
+    axis.text.y = element_blank(),
     axis.line.x = element_line(colour = "black"),
     text = element_text(size=9,
         family="Lato"),
-    strip.text = element_text(size=10, face = "bold"),
-    title = element_text(size=12,
+    strip.text = element_text(size=12, face = "bold"),
+    title = element_text(size=14,
         family="Lato", face = "bold"),
     plot.caption = element_text(size=6,
         family="Lato", face = "plain"),
-    legend.position = "none",
-     axis.title = element_blank()
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
    )
 
+mean_entradas <- last_data_dtm |> 
+  filter(Tipo == "entradas") |> 
+  filter(level == "Nacional")
+
+mean_salidas <- last_data_dtm |> 
+  filter(Tipo == "salidas") |>  
+  filter(level == "Nacional")
+
+tot_entradas_promedio <- round(mean(mean_entradas$Total), 0)
+ven_entradas_promedio <- round(mean(mean_entradas$Ven), 0)
+
+tot_salidas_promedio <- round(mean(mean_salidas$Total), 0)
+ven_salidas_promedio <- round(mean(mean_salidas$Ven), 0)
+
+year_mean_entradas <- all_data_dtm |> 
+  filter(date >= date_today - 365) |> 
+  filter(Tipo == "entradas") |> 
+  filter(level == "Nacional")
+
+year_mean_salidas <- all_data_dtm |> 
+  filter(date >= date_today - 365) |> 
+  filter(Tipo == "salidas") |>  
+  filter(level == "Nacional")
+
+year_tot_entradas_promedio <- round(mean(year_mean_entradas$Total), 0)
+year_ven_entradas_promedio <- round(mean(year_mean_entradas$Ven), 0)
+
+year_tot_salidas_promedio <- round(mean(year_mean_salidas$Total), 0)
+year_ven_salidas_promedio <- round(mean(year_mean_salidas$Ven), 0)
 
 ```
 
+<div class="main-container">
 
+<div class="row">
+
+
+<div class = "column column-50">
+
+Durante la última observación de conteo DTM (`r format(max(last_data_dtm$date), "%d-%b")`) se observaron los siguientes flujos:
+
+```{r table_dtm, echo=FALSE, warning=FALSE, message=FALSE}
+
+ultimos_flujos <- last_data_dtm |> 
+  ungroup() |> 
+  filter(date == max(last_data_dtm$date)) |> 
+  select(level, Tipo, Total, Ven, Otras) |> 
+  rename(Punto = level) |> 
+  mutate(Tipo = replace(Tipo, Tipo == "entradas", "Entradas")) |> 
+  mutate(Tipo = replace(Tipo, Tipo == "salidas", "Salidas"))
+
+
+ultimos_flujos |>
+  group_by(Tipo) |>
+  gt() |> 
+  tab_style(
+    style = cell_text(size = px(12), indent = px(20)),
+    locations = cells_body()) |> 
+  # tab_header(
+  #   title = md("Anexo 2b: Proyección de CRI necesarios"),
+  #   subtitle = "Para los próximos 30 días por región, socio y tipo de insumo"
+  # ) |> 
+  # tab_source_note(
+  #   source_note = md(
+  #     "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  #   )
+  # ) |> 
+    opt_row_striping(row_striping = TRUE) |> 
+  tab_options(data_row.padding = px(1),
+                heading.padding = px(3),
+                heading.title.font.size = px(14),
+                heading.subtitle.font.size = px(12),
+                column_labels.font.size = px(12),
+                column_labels.font.weight = px(12),
+                row_group.font.size = px(13),
+                row_group.padding = px(2),
+                source_notes.font.size = px(9),
+                table.width = pct(100))
+
+```
+
+</div>
+
+<div class = "column column-5">
+   
+</div>
+
+<div class = "column column-45">
+
+En promedio, en las últimas 4 semanas de observaciones, se contaron **`r tot_entradas_promedio` entradas** (`r ven_entradas_promedio` de personas venezolanas) y **`r tot_salidas_promedio` salidas** (`r ven_salidas_promedio` de personas venezolanas) por un **saldo promedio de `r tot_entradas_promedio - tot_salidas_promedio` personas** (`r ven_entradas_promedio - ven_salidas_promedio` de personas venezolanas).
+
+Durante los últimos 12 meses, el saldo diario según conteos DTM ha sido de **`r year_tot_entradas_promedio - year_tot_salidas_promedio` personas** (`r year_ven_entradas_promedio - year_ven_salidas_promedio` de personas venezolanas).
+
+Cabe resaltar que estas cifras no corresponden necesariamente a las estimaciones del GTRM, que utilizan fuentes adicionales a la DTM.
 
 Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiMGQxYWMxYzItYzlmMi00MjAzLWE0YzgtNGNiNjczYjMzOTkwIiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
+
+</div>
+
+</div>
+
+</div>
+
 
 \newpage
 
@@ -515,20 +446,20 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 
 ::: row
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+```{r tot_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
 
 rudah <- main |> 
   dplyr::filter(today > date_start_filter) 
 
 
 total_kits <- rudah |> 
- select("qt_kit01":"qt_kit_other")  |>  
+ select(starts_with("qt_kit"))  |>  
   mutate_all(~coalesce(.,0)) |> 
   rowSums() |> 
   sum()
 
 total_cris <- rudah |> 
- select("qt_cri01":"qt_cri_other") |> 
+ select(starts_with("qt_cri")) |> 
  mutate_all(~coalesce(.,0)) |> 
  rowSums() |> 
  sum()
@@ -638,7 +569,7 @@ Durante la última semana, la operación distribuyó `r total_kits` Kits y `r to
 
 ::: row
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
+```{r detail_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
 
 
 ## Preparing totals by region
@@ -730,12 +661,10 @@ ggplot(cris_region, aes(x = Total, y = reorder(region, Total))) +
 
 
 ```
-
-
 :::
 
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
+```{r detail_distrib_2_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
 
 # Kits by region
 ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
@@ -769,9 +698,6 @@ ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
 
 
 ```
-
-
-
 :::
 :::
 
@@ -894,7 +820,7 @@ El Anexo 1 brinda el desglose de los Kits y CRIs distribuidos durante los últim
 
 ::: row
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+```{r tot_distrib_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
 
 rudah_all <- main  
 
@@ -1058,7 +984,7 @@ Desde la implementación actual del RUDAH (`r start_rudah_all`) se registró la 
 
 ::: row
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
+```{r detail_distrib_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
 
 
 
@@ -1097,13 +1023,10 @@ ggplot(cris_region_all, aes(x = Total, y = reorder(region, Total))) +
 
 
 ```
-
-
-
 :::
 
 ::: column
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
+```{r detail_distrib_2_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
 
 # Kits by region
 ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
@@ -1138,8 +1061,6 @@ ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
 
 
 ```
-
-
 :::
 :::
 
@@ -1562,10 +1483,16 @@ kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
   arrange(Kit_CRI, Detalle) |> 
   select(2:(last_col()-1)) |> 
   pivot_longer(cols = 2:last_col(), names_to = "region", values_to = "Total") |> 
-  filter(Total > 5)
+  filter(Total > 5) |> 
+  mutate(Detalle = str_remove(Detalle, "(caminante)")) |> 
+  mutate(Detalle = str_remove(Detalle, " – ")) |> 
+  mutate(Detalle = str_remove_all(Detalle, "\\(\\)")) |> 
+  mutate(Detalle = str_remove(Detalle, "para adolescente y/o adulto")) |> 
+  mutate(Detalle = str_remove(Detalle, "personas en ")) |> 
+  mutate(Detalle = str_remove(Detalle, "de niñas, niños y adolescentes "))
 
-# 
-# df <- read_csv("https://raw.githubusercontent.com/GDS-ODSSS/unhcr-dataviz-platform/master/data/correlation/heatmap.csv")
+
+
 
 ggplot(
   kits_cris_list_trend_detail,
@@ -1587,13 +1514,6 @@ ggplot(
   #  subtitle = "Por región y tipo de insumo",
     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
   ) +
-  # scale_x_continuous(
-  #   expand = expansion(c(0, 0)),
-  #   breaks = pretty_breaks(n = 10)
-  # ) +
-  # scale_y_discrete(
-  #   labels = scales::label_wrap(17)
-  # ) +
   scale_fill_stepsn(
     colors = unhcr_pal(n = 2, "pal_blue"),
     n.break = 10,
@@ -1605,19 +1525,17 @@ ggplot(
     grid = FALSE,
     axis = FALSE,
     axis_title = FALSE,
-    axis_text_size = 10,
+    axis_text_size = 8,
     legend_title = TRUE,
     legend = FALSE
   )
-# 
-# kits_cris_list_trend_detail |>
-#   kbl() |>
-#   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
 
 
 ```
 
 Cabe resaltar que se trata de datos indicativos basados en actividades pasadas, que no consideran eventuales nuevos eventos o decisiones operativas.
+
+</br>
 
 Entre estos, los siguientes insumos podrían ser destinados a los socios:
 
@@ -1770,7 +1688,6 @@ ggplot(
 #   md_bullet()
 
 ```
-
 
 El Anexo 2 brinda un desglose completo por tipo de insumo, socio y región.
 
@@ -2548,10 +2465,10 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   mutate(across('organizacion', str_replace, 'obc', 'OBC')) |> 
   mutate(across('organizacion', str_replace, 'sociounhcr', 'Socio ACNUR Local')) |> 
   mutate(across('organizacion', str_replace, 'ciremi', 'CIREMI')) |> 
-  mutate_at(vars(3:last_col()), as.numeric) |>
-  mutate_at(vars(3:last_col()), ~replace_na(.,0)) |>
-  mutate(Total = rowSums(across(3:last_col()))) |>  mutate_at(vars(3:last_col()), ~replace_na(.,0)) |>
-  mutate(Total = rowSums(across(3:last_col()))) |> 
+  mutate_at(vars(4:last_col()), as.numeric) |>
+  mutate_at(vars(4:last_col()), ~replace_na(.,0)) |>
+  mutate(Total = rowSums(across(4:last_col()))) |>  mutate_at(vars(4:last_col()), ~replace_na(.,0)) |>
+  mutate(Total = rowSums(across(4:last_col()))) |> 
   rename("Org." = organizacion) |>
   # mutate_at(vars("PE04":"PE24"), as.numeric) |>
   # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
