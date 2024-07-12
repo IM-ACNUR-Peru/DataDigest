@@ -241,7 +241,8 @@ all_data_dtm <- bind_rows(nat_data_dtm, tacna_data_dtm, tumbes_data_dtm, puno_da
   group_by(date, level, Tipo, date_text) |> 
   pivot_wider(names_from = pop, values_from = Total) |> 
   mutate(Total = replace(Total, date == "2024-05-29" & Tipo == "salidas" & level == "Tumbes", 267)) |> 
-   mutate(Ven = replace(Ven, date == "2024-05-29" & Tipo == "entradas" & level == "Puno", 21)) |> 
+  mutate(Ven = replace(Ven, date == "2024-05-29" & Tipo == "entradas" & level == "Puno", 21)) |> 
+  mutate(Total = replace(Total, date == "2024-07-04" & Tipo == "salidas" & level == "Puno", 51)) |> 
   mutate(Otras = Total - Ven) 
 
 
@@ -290,7 +291,7 @@ ggplot(last_data_dtm,
   scale_color_unhcr_d(
     palette = "pal_unhcr",
     nmax = 10,
-    order = c(7, 1)
+    order = c(1, 3)
   ) +
   geom_text_repel(
     aes(label = Total),
@@ -415,6 +416,8 @@ ultimos_flujos |>
                 source_notes.font.size = px(9),
                 table.width = pct(100))
 
+# display_unhcr_pal(10, "pal_unhcr")
+
 ```
 
 </div>
@@ -431,7 +434,7 @@ Durante los últimos 12 meses, el saldo diario según conteos DTM ha sido de **`
 
 Cabe resaltar que estas cifras no corresponden necesariamente a las estimaciones del GTRM, que utilizan fuentes adicionales a la DTM.
 
-Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiMGQxYWMxYzItYzlmMi00MjAzLWE0YzgtNGNiNjczYjMzOTkwIiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
+Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiZjQyMzhlZjMtNjU1OS00OTJiLTk1YWMtZjI4NWEzYTYyNTg4IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
 
 </div>
 
@@ -439,1257 +442,6 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 
 </div>
 
-
-\newpage
-
-## Distribuciones durante los últimos 7 días
-
-::: row
-::: column
-```{r tot_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
-
-rudah <- main |> 
-  dplyr::filter(today > date_start_filter) 
-
-
-total_kits <- rudah |> 
- select(starts_with("qt_kit"))  |>  
-  mutate_all(~coalesce(.,0)) |> 
-  rowSums() |> 
-  sum()
-
-total_cris <- rudah |> 
- select(starts_with("qt_cri")) |> 
- mutate_all(~coalesce(.,0)) |> 
- rowSums() |> 
- sum()
-
-personas_kits <- rudah |> 
-  mutate(sum = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |> 
-  filter(sum > 0) |> 
-  select("member_count") |> 
-  mutate_all(~coalesce(.,0)) |> 
-  rowSums() |> 
-  sum()
-
-personas_cris <- rudah |> 
-  mutate(sum = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |> 
-  filter(sum > 0) |> 
-  select("member_count") |> 
-  mutate_all(~coalesce(.,0)) |> 
-  rowSums() |> 
-  sum()
-
-
-personas_kits_cris <- rudah |> 
-  filter(grepl('asistencia_kit', kit_orientacion)) |> 
-  select("member_count") |> 
-  rowSums() |> 
-  sum()
-
-# Loading required packages
-library(ggtext)
-library(ggforce)
-
-kits_cris_plot <- data.frame(total_cris, total_kits) |> 
-  rename("CRI" = total_cris) |>
-  rename("Kits" = total_kits) |>
-  pivot_longer(cols = CRI:Kits, names_to = "Type", values_to = "Total")
-
-
-# Plot total CRIs and Kits
-ggplot(kits_cris_plot) +
-  geom_arc_bar(aes(
-    x0 = 0,
-    y0 = 0,
-    r0 = 0.6,
-    r = 1,
-    amount = Total,
-    fill = Type
-  ),
-  stat = "pie",
-  size = 1,
-  color = "#FFFFFF"
-  ) +
-  geom_richtext(
-    x = c(1.25, -1.25),
-    y = c(-0.3, 0.3),
-    aes(label = paste0(
-      Type,
-      "<br><strong> ",
-      round(Total, 0),
-      "</strong>", "<br>",
-      round(100 * Total / sum(Total), 1),
-      "%"
-    )),
-    size = 7,
-    fill = NA,
-    label.color = NA
-  ) +
-  geom_richtext(
-    x = 0,
-    y = 0,
-    label = paste0(
-      "Total distribuido",
-      "<br><strong>",
-      round(sum(kits_cris_plot$Total), 0),
-      "</strong>"
-    ),
-    size = 7,
-    fill = NA,
-    label.color = NA
-  ) +
-  labs(
-    title = "Kits y CRIs distribuidos",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_fill_unhcr_d(
-    palette = "pal_unhcr",
-    direction = -1
-  ) +
-  scale_x_continuous(expand = expansion(c(0.3, 0.5))) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = FALSE,
-    axis_title = FALSE,
-    axis_text = FALSE,
-    legend = FALSE,
-    font_size = 16
-  )
-
-
-
-```
-:::
-
-::: column
-Durante la última semana, la operación distribuyó `r total_kits` Kits y `r total_cris` CRIs, asistiendo a un total de `r personas_kits_cris` personas (`r personas_kits` personas recibieron kits y `r personas_cris` recibieron CRIs).
-:::
-:::
-
-::: row
-::: column
-```{r detail_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
-
-
-## Preparing totals by region
-names_lug <- c('region')
-rudah[,names_lug] <- lapply(rudah[,names_lug] , to_factor)
-
-rudah_kits_cris_plot <- rudah |>
-  select(region, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>  
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-   mutate(Kits = rowSums(across("qt_kit01":"qt_kit_other"))) |>
-  mutate(CRIs = rowSums(across("qt_cri01":"qt_cri_other"))) |>
-  select("region", "Kits", "CRIs") |>
-  group_by(region) |>
-  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
-  pivot_longer(!region, names_to="Tipo", values_to="Total")
-
-
-rudah_kits_cris_plot <- mutate(rudah_kits_cris_plot, region = fct_reorder(region, -Total, sum))
-
-cris_region <- rudah_kits_cris_plot |> 
-  filter(Tipo == "CRIs") |> 
-  filter(Total != 0) |> 
-  select(region, Total) |> 
-  mutate_at(vars(region), as.character)
-
-
-kits_region <- rudah_kits_cris_plot |> 
-  filter(Tipo == "Kits") |> 
-  filter(Total != 0) |> 
-  select(region, Total) |> 
-  mutate_at(vars(region), as.character)
-
-
-
-# CRIs by region
-ggplot(cris_region, aes(x = Total, y = reorder(region, Total))) +
-  geom_col(
-  fill = unhcr_pal(n = 1, "pal_blue"),
-  width = 0.5
-  ) +
-    geom_text(aes(label = Total),
-  position = position_dodge(width = 0.7),
-  hjust = -0.1,
-  size = 6
-  ) +
-#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
-  labs(
-    title = "CRIs distribuidos durante los últimos 7 días",
-    x = "Número de CRIs",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_x_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 4), 
-    labels = label_number(scale_cut = cut_short_scale())
-  ) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = "y",
-    axis_text_size = 18,
-    axis_title = "x",
-    font_size = 16
-  )
-# # Kits by region
-# ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
-#   geom_col(
-#   fill = unhcr_pal(n = 1, "pal_blue"),
-#   width = 0.8
-#   ) +
-#   geom_text(aes(label = Total), hjust = 1.5, colour = "white")  +
-#   labs(
-#     title = "Kits distribuidos durante los últimos 7 días",
-#     x = "Número de CRIs",
-#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-#   ) +
-#   scale_x_continuous(
-#     expand = expansion(c(0, 0.1)),
-#     breaks = pretty_breaks(n = 7),
-#     labels = label_number_si()
-#   ) +
-#   theme_unhcr(
-#     grid = FALSE,
-#     axis = "y",
-#     axis_title = "x"
-#   )
-
-
-```
-:::
-
-::: column
-```{r detail_distrib_2_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
-
-# Kits by region
-ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
-  geom_col(
-  fill = unhcr_pal(n = 1, "pal_blue"),
-  width = 0.8
-  ) +
-   geom_text(aes(label = Total),
-  position = position_dodge(width = 0.7),
-  hjust = -0.1,
-  size = 6
-  ) +
-#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
-  labs(
-    title = "Kits distribuidos durante los últimos 7 días",
-    x = "Número de Kits",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_x_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 7),
-    labels = label_number(scale_cut = cut_short_scale())
-  ) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = "y",
-    axis_title = "x",
-    axis_text_size = 18,
-    font_size = 16
-  )
-
-
-```
-:::
-:::
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
-
-# 
-
-# 
-# 
-# ggplot(rudah_kits_cris_plot) +
-#   geom_col(aes(
-#     x = Tipo,
-#     y = Total,
-#     fill = Tipo
-#   ),
-#   position = position_dodge(width = 0.7),
-#   width = 0.6
-#   ) +
-# #  facet_wrap(~ Oficina, nrow = 2) +
-#     facet_grid(~ region, scales='free', space='free') +
-#   geom_text(aes(
-#     x = Tipo,
-#     y = Total,
-#     group = Tipo,
-#     label = Total
-#   ),
-#   position = position_dodge(width = 0.7),
-#   vjust = -1,
-#   size = 8 / .pt
-#   ) +
-#   scale_fill_unhcr_d(
-#     palette = "pal_unhcr",
-#     nmax = 3,
-#     order = c(2, 3, 1)
-#   ) +
-#   labs(
-#     title = "Asistencia brindada",
-#     y = "Insumos distribuidos",
-#     x = "Oficina de terreno",
-#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-#   ) +
-#  # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
-#   scale_y_continuous(expand = expansion(c(0, 0.1))) +
-#   theme_unhcr(
-#     grid = FALSE,
-#     axis = "x",
-#     axis_title = FALSE,
-#     axis_text = "x"
-#   ) +
-#   ylim(0,rudah_kits_cris_plot_ymax) +
-#   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
-#   facet_wrap(~ region, ncol = 3, scales='free') 
-# 
-
-
-
-total_kits_cris_line <- rudah |> 
- select(today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>  
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  mutate(Kits = rowSums(across("qt_kit01":"qt_kit_other"))) |>
-  mutate(CRIs = rowSums(across("qt_cri01":"qt_cri_other"))) |>
-  select(today, Kits, CRIs) |> 
-  group_by(today) |>
-  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
-  pivot_longer(!today, names_to="Tipo", values_to="Total")
-  
-rudah_kits_cris_plot_ymax <- max(total_kits_cris_line$Total)*1.2
-
-ggplot(total_kits_cris_line, aes(
-    x = today,
-    y = Total)) +
-  geom_col(aes(
-    fill = Tipo
-  ),
-  position = position_dodge(width = 0.7),
-  width = 0.6
-  ) +
-  geom_text(aes(
-    group = Tipo,
-    label = Total, 
-    size = 6
-  ),
-  position = position_dodge(width = 0.7),
-  vjust = -1,
-  size = 3
-  ) +
-  scale_fill_unhcr_d(
-    palette = "pal_unhcr",
-    nmax = 3,
-    order = c(2, 3, 1)
-  ) +
-  labs(
-    title = "Distribuciones diarias durante los ultimos 7 dias",
-    y = "Cantidad de insumos",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_x_date(breaks = unique(total_kits_cris_line$today)) +
-  scale_y_continuous(
-    expand = expansion(c(0, 0.1)),
-    labels = label_number(scale_cut = cut_short_scale())
-  ) +
-  ylim(0,rudah_kits_cris_plot_ymax) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = "x",
-    axis_title = FALSE,
-    font_size = 11
-  ) +
-  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
-
-
-```
-
-El Anexo 1 brinda el desglose de los Kits y CRIs distribuidos durante los últimos 7 días por región. \newpage
-
-## Distribuciones acumuladas
-
-::: row
-::: column
-```{r tot_distrib_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
-
-rudah_all <- main  
-
-
-total_kits_all <- rudah_all |> 
- select("qt_kit01":"qt_kit_other")  |>  
-  mutate_all(~coalesce(.,0)) |> 
-  rowSums() |> 
-  sum()
-
-total_cris_all <- rudah_all |> 
- select("qt_cri01":"qt_cri_other") |> 
- mutate_all(~coalesce(.,0)) |> 
- rowSums() |> 
- sum()
-
-personas_kits_all <- rudah_all |> 
-  mutate(sum = rowSums(across("kit_dis_kit_abrigo_bebe":"kit_dis_other"))) |> 
-  filter(sum > 0) |> 
-  select("member_count") |> 
-  mutate_all(~coalesce(.,0)) |> 
-  rowSums() |> 
-  sum()
-
-personas_cris_all <- rudah_all |> 
-  mutate(sum = rowSums(across("cri_dis_balde":"cri_dis_teclado"))) |> 
-  filter(sum > 0) |> 
-  select("member_count") |> 
-  mutate_all(~coalesce(.,0)) |> 
-  rowSums() |> 
-  sum()
-
-
-personas_kits_cris_all <- rudah_all |> 
-  filter(grepl('asistencia_kit', kit_orientacion)) |> 
-  select("member_count") |> 
-  rowSums() |> 
-  sum()
-
-# Loading required packages
-library(ggtext)
-library(ggforce)
-
-kits_cris_plot_all <- data.frame(total_cris_all, total_kits_all) |> 
-  rename("CRI" = total_cris_all) |>
-  rename("Kits" = total_kits_all) |>
-  pivot_longer(cols = CRI:Kits, names_to = "Type", values_to = "Total")
-
-
-# Plot total CRIs and Kits
-ggplot(kits_cris_plot_all) +
-  geom_arc_bar(aes(
-    x0 = 0,
-    y0 = 0,
-    r0 = 0.6,
-    r = 1,
-    amount = Total,
-    fill = Type
-  ),
-  stat = "pie",
-  size = 1,
-  color = "#FFFFFF"
-  ) +
-  geom_richtext(
-    x = c(1.25, -1.25),
-    y = c(-0.3, 0.3),
-    aes(label = paste0(
-      Type,
-      "<br><strong> ",
-      format(Total, big.mark = ","),
- #     round(Total, 0),
-      "</strong>", "<br>",
- #     format(round(100 * Total / sum(Total), 1), big.mark = ","),
-      round(100 * Total / sum(Total), 1),
-      "%"
-    )),
-    size = 7,
-    fill = NA,
-    label.color = NA
-  ) +
-  geom_richtext(
-    x = 0,
-    y = 0,
-    label = paste0(
-      "Total distribuido",
-      "<br><strong>",
-      format(sum(kits_cris_plot_all$Total), big.mark = ","),
-#      round(sum(kits_cris_plot_all$Total), 0),
-      "</strong>"
-    ),
-    size = 7,
-    fill = NA,
-    label.color = NA
-  ) +
-  labs(
-    title = "Kits y CRIs distribuidos",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_fill_unhcr_d(
-    palette = "pal_unhcr",
-    direction = -1
-  ) +
-  scale_x_continuous(expand = expansion(c(0.3, 0.5))) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = FALSE,
-    axis_title = FALSE,
-    axis_text = FALSE,
-    legend = FALSE,
-    font_size = 16
-  )
-
-## Preparing totals by region
-names_lug_all <- c('region')
-rudah_all[,names_lug_all] <- lapply(rudah_all[,names_lug_all] , to_factor)
-
-rudah_kits_cris_plot_all <- rudah_all |>
-  select(region, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>  
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-   mutate(Kits = rowSums(across("qt_kit01":"qt_kit_other"))) |>
-  mutate(CRIs = rowSums(across("qt_cri01":"qt_cri_other"))) |>
-  select("region", "Kits", "CRIs") |>
-    group_by(region) |>
-  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
-  pivot_longer(!region, names_to="Tipo", values_to="Total")
-
-
-rudah_kits_cris_plot_all <- mutate(rudah_kits_cris_plot_all, region = fct_reorder(region, -Total, sum))
-
-cris_region_all <- rudah_kits_cris_plot_all |> 
-  filter(Tipo == "CRIs") |> 
-  filter(Total != 0) |> 
-  select(region, Total) |> 
-  mutate_at(vars(region), as.character)
-
-
-kits_region_all <- rudah_kits_cris_plot_all |> 
-  filter(Tipo == "Kits") |> 
-  filter(Total != 0) |> 
-  select(region, Total) |> 
-  mutate_at(vars(region), as.character)
-
-start_rudah_all = min(rudah_all$today)
-
-total_kits_cris_all = format(sum(rudah_kits_cris_plot_all$Total), big.mark = ",")
-
-total_kits_all = format(sum(subset(rudah_kits_cris_plot_all, Tipo == "Kits")$Total), big.mark = ",")
-total_cris_all = format(sum(subset(rudah_kits_cris_plot_all, Tipo == "CRIs")$Total), big.mark = ",")
-
-
-```
-:::
-
-::: column
-Desde la implementación actual del RUDAH (`r start_rudah_all`) se registró la distribución de un total de `r total_kits_cris_all` insumos, entre ellos `r total_kits_all` Kits y `r total_cris_all` CRIs.
-:::
-:::
-
-::: row
-::: column
-```{r detail_distrib_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
-
-
-
-
-
-# CRIs by region
-ggplot(cris_region_all, aes(x = Total, y = reorder(region, Total))) +
-  geom_col(
-  fill = unhcr_pal(n = 1, "pal_blue"),
-  width = 0.8
-  ) +
-    geom_text(aes(label = format(Total, big.mark = ",")),
-  position = position_dodge(width = 0.7),
-  hjust = -0.1,
-  size = 6
-  ) +
-#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
-  labs(
-    title = "CRIs distribuidos",
-    x = "Número de CRIs",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_x_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 4),
-    labels = label_number(scale_cut = cut_short_scale()),
-    limits = c(0, max(cris_region_all$Total)*1.1)
-  ) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = "y",
-    axis_title = "x",
-    axis_text_size = 18,
-    font_size = 16
-  )
-
-
-```
-:::
-
-::: column
-```{r detail_distrib_2_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
-
-# Kits by region
-ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
-  geom_col(
-  fill = unhcr_pal(n = 1, "pal_blue"),
-  width = 0.8
-  ) +
-    geom_text(aes(label = format(Total, big.mark = ",")),
-  position = position_dodge(width = 0.7),
-  hjust = -0.1,
-  size = 6
-  ) +
-#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
-  labs(
-    title = "Kits distribuidos",
-    x = "Número de Kits",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_x_continuous(
-     expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 4),
- #   labels = label_number(scale_cut = cut_short_scale()),
-    limits = c(0, max(kits_region_all$Total)*1.1)
-  ) +
-  theme_unhcr(
-    grid = FALSE,
-    axis = "y",
-    axis_title = "x",
-    axis_text_size = 18,
-    font_size = 16
-  )
-
-
-```
-:::
-:::
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE, dpi= 150,  fig.width=7, fig.height=2.4}
-
-## Mobile average over time of kits and CRI distributions by region
-
-library(zoo)
-library(padr)
-
-## Downloading xls form
-xls <- kobo_form("a9Erto2aYbgJamz8vdrtJt") |> 
-  select(name, label) |> 
-  filter(grepl("qt_", name)) |> 
-  separate_wider_delim(label, delim = "*", names = c("Delete", "label"), too_many = "merge") |> 
-  separate_wider_delim(label, delim = "*", names = c("label", "Delete2"), too_many = "merge") |> 
-  mutate(across(label, str_replace, '\\$', '_')) |> 
-  mutate(across(label, str_replace, '\\{', '_')) |> 
-  mutate(across(label, str_replace, '\\}', '_')) |> 
-  mutate(across(label, str_replace, '__kit_other_', 'Kit (otro)')) |> 
-  mutate(across(label, str_replace, '__cri_other_', 'CRI (otro)')) |> 
-  mutate(label = str_trim(label)) |> 
-  select(name, label)
-
-
-## Total trends CRIs and Kits national level
-kits_cris_list_trend_all <- rudah_all |>
-  select(today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
-  left_join(xls, by = c('Tipo' = 'name')) |> 
-  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
-                TRUE ~ 'CRI')) |>
-  select(today, Kit_CRI, label, Total) |> 
-  rename("Tipo" = label) |>
-
-  # separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  # mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-  # mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
-  filter(Total != 0) |> 
-  mutate_at(vars(Total), as.numeric) |>
-  group_by(today, Kit_CRI) |> 
-  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
-  arrange(today, Kit_CRI, -Total) |> 
-  pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
-  ungroup() |> 
-  mutate(group = "group") |> 
-  padr::pad(interval = "day", group = "group") |> 
-  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
-  group_by(group) |> 
-#  filter(sum(Kit) + sum(CRI) != 0) |> 
-  mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
-  mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> 
-  filter(!is.na(cma_kits)) |> 
-  select(today, cma_kits, cma_cris) |> 
-   rename("Kits" = cma_kits) |>
-   rename("CRIs" = cma_cris) |> 
-  pivot_longer(cols = c(Kits, CRIs), names_to = "Tipo", values_to = "Total")
-
-
-ymax_kits_cris_list_trend_all <- max(kits_cris_list_trend_all$Total * 1.1)
-# 
-# ggplot(kits_cris_list_trend_all, aes(
-#     x = today)) +
-#   geom_line(aes(
-#     y = cma_kits
-#   ),
-#   size = 0.5,
-#   color = unhcr_pal(n = 1, "pal_blue")
-#   ) +
-#   geom_line(aes(
-#     y = cma_cris
-#   ),
-#   size = 0.5,
-#   color = unhcr_pal(n = 1, "pal_grey")
-#   ) +
-#   labs(
-#     title = "Distribución de Kits y CRIs",
-#     y = "Numero de insumos",
-#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-#   ) +
-#  # scale_x_continuous(breaks = pretty_breaks()) +
-#   scale_y_continuous(
-#     expand = expansion(c(0, 0.1)),
-#     breaks = pretty_breaks(n = 4),
-#     labels = label_number_si(),
-#     limits = c(0, ymax_kits_cris_list_trend_all)
-#   ) +
-#   theme_unhcr(font_size = 20,
-#     grid = "Y",
-#     axis = "x",
-#     axis_title = "y"
-#   ) 
-
-
-
-# Plot
-ggplot(kits_cris_list_trend_all, aes(
-  x = today,
-  y = Total,
-  color = Tipo
-)) +
-  geom_line(size = 0.5) +
-  # geom_dl(aes(label = Tipo),
-  #   method = list(cex = 1,
-  #     dl.trans(x = x + 0.1),
-  #     "last.points"
-  #   ),
-  #   size = 5 
-  # ) +
-  labs(
-    title = "Distribución de Kits y CRIs",
-    y = "Numero de insumos",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
- # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="2 month"
-               # limits = c(min(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+30)
-               ) +
-  scale_y_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(),
-    labels = label_number(scale_cut = cut_short_scale()),
-    limits = c(0, ymax_kits_cris_list_trend_all)
-  ) +
-  scale_color_unhcr_d(
-    palette = "pal_unhcr",
-    nmax = 10,
-    order = c(7, 1)
-  ) +
-  coord_cartesian(clip = "off") +
-     theme(
-     panel.background = element_rect(fill = "white"),
- #   panel.grid = element_blank(),
-     panel.grid.major.y = element_line(colour = "grey"),
-     panel.grid.major.x = element_blank(),
-    axis.ticks = element_blank(),
-    strip.background = element_rect(colour = "white", fill = "white"),
-    axis.text.x = element_text(size=8,
-        family="Lato"),
-    axis.text.y = element_text(size=8,
-        family="Lato"),
-    axis.line.x = element_line(colour = "black"),
-    text = element_text(size=11,
-        family="Lato"),
-    strip.text = element_text(size=12, face = "bold"),
-    title = element_text(size=11,
-        family="Lato", face = "bold"),
-    plot.caption = element_text(size=6,
-        family="Lato", face = "plain"),
-    legend.position = "none",
-     axis.title = element_blank(),
- plot.margin = unit(c(0.1, 3, 0.1, 0.1), "cm")
-   ) +
-  geom_text_repel(
-    data = subset(kits_cris_list_trend_all, today == max(today)),
-    aes(label = Tipo),
-    xlim = as.Date(c(max(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+10)),
-    size = 3,
-    hjust = -2,
-    direction = "y",
-    box.padding = 0.5,
-    nudge_x = 2,
-    segment.color = NA,
-    show.legend = FALSE
-  ) 
-   
-  # theme_unhcr(
-  #   grid = "Y",
-  #   axis = "x",
-  #   axis_title = "y",
-  #   legend = FALSE
-  # ) +
-  # theme(plot.margin = margin(r = 50))
-
-```
-
-Promedio móvil (10 días) de distribuciones diarias de Kits (en azul) y CRIs (en gris) a nivel nacional.
-
-\newpage
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE, dpi=300,  fig.width=7,fig.height=10}
-
-## Mobile average over time of kits and CRI distributions by region
-
-
-
-## First total trends by total kits and CRIs
-kits_cris_list_trend <- rudah_all |>
-  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
-  left_join(xls, by = c('Tipo' = 'name')) |> 
-  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
-                TRUE ~ 'CRI')) |>
-  select(region, today, Kit_CRI, label, Total) |> 
-  rename("Tipo" = label) |> 
-    filter(Total != 0) |> 
-  mutate_at(vars(Total), as.numeric) |>
-  group_by(region, today, Kit_CRI) |> 
-  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
-  arrange(region, today, Kit_CRI, -Total) |> 
-  pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
-  ungroup() |> 
-  pad(interval = "day", group = "region") |> 
-  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
-  group_by(region) |> 
-#  filter(sum(Kit) + sum(CRI) != 0) |> 
-  mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
-  mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> # Centered moving average
-  filter(!is.na(cma_cris)) 
-  # select(region, today, cma_kits, cma_cris) |> 
-  # pivot_longer(cols = c(cma_kits, cma_cris), names_to = "Tipo", values_to = "CMA") |> 
-  #  na.omit() |> 
-  # group_by(region) %>%
-  # filter(sum(Kit) + sum(CRI) != 0)
-
-
-ymax_kits_cris_list_trend <- max(kits_cris_list_trend$cma_cris * 1.1)
-
-ggplot(kits_cris_list_trend, aes(
-    x = today, group = region)) +
-  geom_line(aes(
-    y = cma_kits
-  ),
-  size = 0.7,
-  color = unhcr_pal(n = 1, "pal_blue"),
-  lineend = "round",
-  linejoin = "round"
-  ) +
-    geom_line(aes(
-    y = cma_cris
-  ),
-  size = 0.7,
-  color = unhcr_pal(n = 1, "pal_grey"),
-  lineend = "round",
-  linejoin = "round"
-  ) +
-  labs(
-    title = "Distribución de Kits y CRIs en el tiempo",
-    subtitle = "Promedio móvil (10 días) de Kits (en azul) y CRIs (en gris) por región",
-    y = "Numero de insumos",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
- # scale_x_continuous(breaks = pretty_breaks()) +
-  scale_x_date(date_labels="%b %Y", date_breaks  ="2 month") +
-  scale_y_continuous(
-    expand = expansion(c(0, 0.1)),
-    breaks = pretty_breaks(n = 4),
-    labels = label_number(scale_cut = cut_short_scale())
-#    limits = c(0, ymax_kits_cris_list_trend)
-  ) +
-  # theme_unhcr(font_size = 45,
-  #   grid = "Y",
-  #   axis = "x",
-  #   axis_title = "y",
-  #   legend = F
-  # ) +
-     theme(
-     panel.background = element_rect(fill = "white"),
- #   panel.grid = element_blank(),
-     panel.grid.major.y = element_line(colour = "grey"),
-     panel.grid.major.x = element_blank(),
-    axis.ticks = element_blank(),
-    strip.background = element_rect(colour = "white", fill = "white"),
-    axis.text.x = element_text(size=6,
-        family="Lato"),
-    axis.text.y = element_text(size=6,
-        family="Lato"),
-    axis.line.x = element_line(colour = "black"),
-    text = element_text(size=6,
-        family="Lato"),
-    strip.text = element_text(size=11, face = "bold"),
-    title = element_text(size=11,
-        family="Lato", face = "bold"),
-    plot.caption = element_text(size=6,
-        family="Lato", face = "plain"),
-    legend.position = "none",
-     axis.title = element_blank()
-   ) +
-  facet_wrap(~ region, 
-             ncol = 2, 
-             scales='free') 
-  
-```
-
-## Predicción: 30 días de Kits y CRIs necesarios
-
-Utilizando los promedios indicados arriba para los últimos dos meses, se puede proyectar que **durante los próximos 30 días** cada región necesitará los siguientes insumos:
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
-
-## Prediction: # of Kits and # of CRIs needed over the coming two weeks, with breakdown of type
-
-## Reference periods
-referencemin = Sys.Date() - 60
-referencemax = Sys.Date()
-
-projectiondays = 30
-
-## Basic prediction calculation based on moving averages
-
-kits_cris_list_trend_pred <- kits_cris_list_trend |> 
-  filter(today > referencemin) |> 
-  na.omit() |> 
-  group_by(region) |> 
-  summarise_at(c("cma_kits", "cma_cris"), mean, na.rm = TRUE) |> 
-  mutate("Kits Necesarios" = round(cma_kits * projectiondays, digits = 0)) |> 
-  mutate("CRIs Necesarios" = round(cma_cris * projectiondays, digits = 0)) |> 
-  mutate(Total = `Kits Necesarios` + `CRIs Necesarios`) |> 
-  arrange(-Total) |> 
-  select(region, "Kits Necesarios", "CRIs Necesarios") 
-  
-
-
-kits_cris_list_trend_pred |>
-  gt() |> 
-  tab_style(
-    style = cell_text(size = px(12)),
-    locations = cells_body()) |> 
-  tab_header(
-    title = md("Predicción: Insumos necesarios"),
-    subtitle = "Por región y tipo de insumo"
-  ) |> 
-  tab_source_note(
-    source_note = md(
-      "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-    )
-  ) |> 
-    opt_row_striping(row_striping = TRUE) |> 
-  tab_options(data_row.padding = px(1),
-                heading.padding = px(3),
-                heading.title.font.size = px(14),
-                heading.subtitle.font.size = px(12),
-                column_labels.font.size = px(12),
-                column_labels.font.weight = px(12),
-                row_group.font.size = px(13),
-                row_group.padding = px(2),
-                source_notes.font.size = px(9),
-              table.width = pct(100))
-
-
-```
-
-Con desglose estimado por tipo de kit y CRI:
-
-```{r, dpi=200, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=4.5}
-
-## Mobile average over time of kits and CRI distributions by region
-
-
-## Trends by Kits and CRIs
-kits_cris_list_trend_detail <- rudah_all |>
-  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  group_by(region, today) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
-
-  
-
-## Adding min and max dates for missing values by region
-kits_cris_list_trend_detail_min <- kits_cris_list_trend_detail |> 
-  group_by(region) |> 
-  summarize(across(where(is.numeric), ~ 0), today = referencemin)
-
-kits_cris_list_trend_detail_max <- kits_cris_list_trend_detail |> 
-  group_by(region) |> 
-  summarize(across(where(is.numeric), ~ 0), today = referencemax)
-
-
-
-kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
-  ungroup() |> 
-  bind_rows(kits_cris_list_trend_detail_min) |> 
-  bind_rows(kits_cris_list_trend_detail_max) |>
-  pad(interval = "day", group = "region") |> 
-  mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
-  na.omit()|> 
-  filter(today > referencemin) |> 
-  na.omit() |> 
-  group_by(region) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
-            list(~. * projectiondays)) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
-            list(~round(., digits = 0))) |> 
-    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
-  left_join(xls, by = c('Tipo' = 'name')) |> 
-  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
-                TRUE ~ 'CRI')) |>
-  select(region, Kit_CRI, label, Total) |> 
-  rename("Detalle" = label) |> 
-  filter(Total > 0) |> 
-  pivot_wider(names_from = region, values_from = Total) |> 
-  mutate_if(is.numeric , replace_na, replace = 0) |> 
-#   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-#   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
-# #  mutate(across(c('Detalle'), str_replace, '_', ' '))
-#   mutate_all(funs(str_replace_all(., "_", " "))) |> 
-#   mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
-#   mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
-#   mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
-#   mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-#   mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
-#   mutate_at(vars(3:last_col()), as.numeric) |>
-  mutate(Total = rowSums(across(3:last_col()))) |>
-  filter(Total != 0) |> 
-  arrange(Kit_CRI, Detalle) |> 
-  select(2:(last_col()-1)) |> 
-  pivot_longer(cols = 2:last_col(), names_to = "region", values_to = "Total") |> 
-  filter(Total > 5) |> 
-  mutate(Detalle = str_remove(Detalle, "(caminante)")) |> 
-  mutate(Detalle = str_remove(Detalle, " – ")) |> 
-  mutate(Detalle = str_remove_all(Detalle, "\\(\\)")) |> 
-  mutate(Detalle = str_remove(Detalle, "para adolescente y/o adulto")) |> 
-  mutate(Detalle = str_remove(Detalle, "personas en ")) |> 
-  mutate(Detalle = str_remove(Detalle, "de niñas, niños y adolescentes "))
-
-
-
-
-ggplot(
-  kits_cris_list_trend_detail,
-  aes(
-    x = region,
-    y = fct_rev(Detalle)
-  )
-) +
-  geom_tile(aes(
-    fill = Total
-  ),
-  color = "white",
-  lwd = .5,
-  linetype = 1
-  ) +
-  geom_text(aes(label = Total), colour = "white", size = 3)  +
-  labs(
-    title = "Kits y CRIs posiblemente necesitados por región y tipo de insumo",
-  #  subtitle = "Por región y tipo de insumo",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  scale_fill_stepsn(
-    colors = unhcr_pal(n = 2, "pal_blue"),
-    n.break = 10,
-    name = "Numero de insumos"
-  ) +
-  # coord_fixed() +
-    theme_unhcr(
-    font_size = 11,
-    grid = FALSE,
-    axis = FALSE,
-    axis_title = FALSE,
-    axis_text_size = 8,
-    legend_title = TRUE,
-    legend = FALSE
-  )
-
-
-```
-
-Cabe resaltar que se trata de datos indicativos basados en actividades pasadas, que no consideran eventuales nuevos eventos o decisiones operativas.
-
-</br>
-
-Entre estos, los siguientes insumos podrían ser destinados a los socios:
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=5}
-
-## Mobile average over time of kits and CRI distributions by region by partner
-
-## Preparing the data
-
-kits_cris_list_trend_detail_socios <- rudah_all |>
-  dplyr::filter(grepl("sociounhcr", organizacion) | grepl("obc", organizacion) | grepl("ciremi", organizacion)) |> 
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "hias", "HIAS")) |>  
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "crus_roja", "Cruz Roja")) |> 
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "caritas", "Caritas")) |>  
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "encuentros", "Encuentros")) |> 
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "scalabrini", "Scalabrini")) |> 
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "ach", "ACH")) |> 
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "uv", "UV")) |> 
-  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
-  dplyr::filter(tipo_socio != "other") |> 
-    select(region, today, organizacion, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
-  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
-  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  group_by(region, today, organizacion) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
-
-  
-
-
-## Adding min and max dates for missing values by region and organization
-kits_cris_list_trend_detail_socios_min <- kits_cris_list_trend_detail_socios |> 
-  group_by(region, organizacion) |> 
-  summarize(across(where(is.numeric), ~ 0), today = referencemin)
-
-kits_cris_list_trend_detail_socios_max <- kits_cris_list_trend_detail_socios |> 
-  group_by(region, organizacion) |> 
-  summarize(across(where(is.numeric), ~ 0), today = referencemax)
-
-
-
-## Continuing the pipe: Trends by type of kits and CRIs and partners
-kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
-  ungroup() |> 
-  bind_rows(kits_cris_list_trend_detail_socios_min) |>
-  bind_rows(kits_cris_list_trend_detail_socios_max) |>
-  group_by(region, organizacion) |> 
-  complete(today = seq(min(today), max(today), by = "1 day")) %>%
-  # pad(interval = "day") |>
-  ungroup() |> 
-  mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
-  na.omit()|> 
-  filter(today > referencemin) |> 
-  na.omit() |> 
-  group_by(region, organizacion) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
-            list(~. * projectiondays)) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
-            list(~round(., digits = 0))) |> 
-    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
-  left_join(xls, by = c('Tipo' = 'name')) |> 
-  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
-                TRUE ~ 'CRI')) |>
-  select(region, organizacion, Kit_CRI, label, Total) |> 
-  rename("Detalle" = label) |> 
-    filter(Total > 0) |> 
-    #rowSums(na.rm = TRUE) |> 
-  pivot_wider(names_from = region, values_from = Total) |> 
-  mutate_if(is.numeric , replace_na, replace = 0) |> 
-#   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-#   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
-# #  mutate(across(c('Detalle'), str_replace, '_', ' '))
-#   mutate_all(funs(str_replace_all(., "_", " "))) |> 
-  # mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
-  mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
-  mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
-  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
-  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
-  mutate(across('organizacion', str_replace, 'obc', 'OBC')) |> 
-  mutate(across('organizacion', str_replace, 'sociounhcr', 'Socio ACNUR Local')) |> 
-  mutate(across('organizacion', str_replace, 'ciremi', 'CIREMI')) |> 
-  mutate_at(vars(4:last_col()), as.numeric) |>
-  mutate_at(vars(4:last_col()), ~replace_na(.,0)) |>
-  mutate(Total = rowSums(across(4:last_col()))) |>
-  rename("Org." = organizacion) |>
-  # mutate_at(vars("PE04":"PE24"), as.numeric) |>
-  # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
-  # mutate(Total = rowSums(across("PE04":"PE24"))) |>
-  filter(Total > 5) |> 
-  select(`Org.`, Detalle, Total)
-
-
-ggplot(
-  kits_cris_list_trend_detail_socios,
-  aes(
-    x = `Org.`,
-    y = fct_rev(Detalle)
-  )
-) +
-  geom_tile(aes(
-    fill = Total
-  ),
-  color = "white",
-  lwd = .5,
-  linetype = 1
-  ) +
-  geom_text(aes(label = Total), colour = "white", size = 3)  +
-  labs(
-    title = "Kits y CRIs posiblemente necesitados por socio",
-    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-  ) +
-  # scale_x_continuous(
-  #   expand = expansion(c(0, 0)),
-  #   breaks = pretty_breaks(n = 10)
-  # ) +
-  # scale_y_discrete(
-  #   labels = scales::label_wrap(17)
-  # ) +
-  scale_fill_stepsn(
-    colors = unhcr_pal(n = 3, "pal_navy"),
-    n.break = 10,
-    name = "Numero de insumos"
-  ) +
-  # coord_fixed() +
-    theme_unhcr(
-    font_size = 11,
-    grid = FALSE,
-    axis = FALSE,
-    axis_title = FALSE,
-    axis_text_size = 10,
-    legend_title = TRUE,
-    legend = FALSE
-  )
-
-# kits_cris_list_trend_detail_socios |>
-#   kbl() |>
-#   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
-# 
-# library(glue)
-# library(gluedown)
-# 
-# kits_cris_list_trend_detail_socios_top_5 <- kits_cris_list_trend_detail_socios |>
-#   # group_by(Detalle, `Org.`) |>
-#   # summarise_at(vars("Total"), sum, na.rm = TRUE) |>
-#   slice_max(order_by = Total, n = 5) |>
-#   glue_data("**{Detalle}**: {`Org.`} ({Total})") |>
-#   md_bullet()
-
-```
-
-El Anexo 2 brinda un desglose completo por tipo de insumo, socio y región.
 
 \newpage
 
@@ -1822,8 +574,8 @@ rudah_ori_plot <- rudah_ori_plot |>
   pivot_wider(names_from = "tipo_orientacion", values_from = "tot") |>
   filter(!is.na(region)) |>
   mutate_at(c("ori_legal", "ori_general"), ~replace_na(.,0)) |>
-  rename("Or. Legal" = ori_legal) |>
-  rename("Or. General" = ori_general) |>
+  rename("Legal" = ori_legal) |>
+  rename("General" = ori_general) |>
   pivot_longer(!region, names_to="Tipo", values_to="Total") |> 
   ungroup() |> 
   add_count() |> 
@@ -1982,7 +734,7 @@ ggplot(rudah_ori_plot_all, aes(
     strip.text = element_text(size=12, face = "bold"),
     title = element_text(size=12,
         family="Lato", face = "bold"),
-    plot.caption = element_text(size=12,
+    plot.caption = element_text(size=6,
         family="Lato", face = "plain"),
     legend.position = "none",
      axis.title = element_blank()
@@ -2293,28 +1045,1302 @@ Para más información, consultar el [dashboard de monitoreo de fronteras](https
 
 \newpage
 
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
+## Distribuciones durante los últimos 7 días
+
+::: row
+::: column
+```{r tot_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+
+rudah <- main |> 
+  dplyr::filter(today > date_start_filter) 
 
 
-kits_cris_list <- rudah |>
-  select(region, "kit_dis_kit_abrigo_bebe":"kit_dis_other", "cri_dis_balde":"cri_dis_teclado") |>
-#  mutate_at(c('col1', 'col2'), as.numeric)
-#  mutate_at('kit_dis_kit_abrigo_bebe':'cri_dis_teclado', ~replace_na(.,0))
-  mutate_at(vars(starts_with("kit")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("kit")), as.numeric) |>
-  mutate_at(vars(starts_with("cri")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars(starts_with("cri")), as.numeric) |>
-  pivot_longer(!region, names_to="Tipo", values_to="Total") |>
-  separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
-  mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
-#  mutate(across(c('Detalle'), str_replace, '_', ' '))
-  mutate_all(funs(str_replace_all(., "_", " "))) |> 
-  mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
-  mutate_all(funs(str_replace_all(., "Acnur", "ACNUR"))) |> 
+total_kits <- rudah |> 
+ select(starts_with("qt_kit"))  |>  
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+total_cris <- rudah |> 
+ select(starts_with("qt_cri")) |> 
+ mutate_all(~coalesce(.,0)) |> 
+ rowSums() |> 
+ sum()
+
+personas_kits <- rudah |> 
+  mutate(sum = rowSums(across(starts_with("kit_dis_")))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+personas_cris <- rudah |> 
+  mutate(sum = rowSums(across(starts_with("cri_dis_")))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+
+personas_kits_cris <- rudah |> 
+  filter(grepl('asistencia_kit', kit_orientacion)) |> 
+  select("member_count") |> 
+  rowSums() |> 
+  sum()
+
+# Loading required packages
+library(ggtext)
+library(ggforce)
+
+kits_cris_plot <- data.frame(total_cris, total_kits) |> 
+  rename("CRI" = total_cris) |>
+  rename("Kits" = total_kits) |>
+  pivot_longer(cols = CRI:Kits, names_to = "Type", values_to = "Total")
+
+
+# Plot total CRIs and Kits
+ggplot(kits_cris_plot) +
+  geom_arc_bar(aes(
+    x0 = 0,
+    y0 = 0,
+    r0 = 0.6,
+    r = 1,
+    amount = Total,
+    fill = Type
+  ),
+  stat = "pie",
+  size = 1,
+  color = "#FFFFFF"
+  ) +
+  geom_richtext(
+    x = c(1.25, -1.25),
+    y = c(-0.3, 0.3),
+    aes(label = paste0(
+      Type,
+      "<br><strong> ",
+      round(Total, 0),
+      "</strong>", "<br>",
+      round(100 * Total / sum(Total), 1),
+      "%"
+    )),
+    size = 7,
+    fill = NA,
+    label.color = NA
+  ) +
+  geom_richtext(
+    x = 0,
+    y = 0,
+    label = paste0(
+      "Total distribuido",
+      "<br><strong>",
+      round(sum(kits_cris_plot$Total), 0),
+      "</strong>"
+    ),
+    size = 7,
+    fill = NA,
+    label.color = NA
+  ) +
+  labs(
+    title = "Kits, CRIs y Food Items distribuidos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_fill_unhcr_d(
+    palette = "pal_unhcr",
+    direction = -1
+  ) +
+  scale_x_continuous(expand = expansion(c(0.3, 0.5))) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    axis_text = FALSE,
+    legend = FALSE,
+    font_size = 16
+  )
+
+
+
+```
+:::
+
+::: column
+Durante la última semana, la operación distribuyó `r total_kits` Kits y `r total_cris` CRIs y Food Items, asistiendo a un total de `r personas_kits_cris` personas (`r personas_kits` personas recibieron kits y `r personas_cris` recibieron CRIs y/o Food Items).
+:::
+:::
+
+::: row
+::: column
+```{r detail_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
+
+
+## Preparing totals by region
+names_lug <- c('region')
+rudah[,names_lug] <- lapply(rudah[,names_lug] , to_factor)
+
+rudah_kits_cris_plot <- rudah |>
+  select(region, starts_with("qt_kit"), starts_with("qt_cri")) |>  
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+   mutate(Kits = rowSums(across(starts_with("qt_kit")))) |>
+  mutate(CRIs = rowSums(across(starts_with("qt_cri")))) |>
+  select("region", "Kits", "CRIs") |>
+  group_by(region) |>
+  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
+  pivot_longer(!region, names_to="Tipo", values_to="Total")
+
+
+rudah_kits_cris_plot <- mutate(rudah_kits_cris_plot, region = fct_reorder(region, -Total, sum))
+
+cris_region <- rudah_kits_cris_plot |> 
+  filter(Tipo == "CRIs") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
+
+
+kits_region <- rudah_kits_cris_plot |> 
+  filter(Tipo == "Kits") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
+
+
+
+# CRIs by region
+ggplot(cris_region, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.5
+  ) +
+    geom_text(aes(label = Total),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 6
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "CRIs y Food Items distribuidos durante los últimos 7 días",
+    x = "Número de CRIs/Food Items",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4), 
+    labels = label_number(scale_cut = cut_short_scale())
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_text_size = 18,
+    axis_title = "x",
+    font_size = 16
+  )
+# # Kits by region
+# ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
+#   geom_col(
+#   fill = unhcr_pal(n = 1, "pal_blue"),
+#   width = 0.8
+#   ) +
+#   geom_text(aes(label = Total), hjust = 1.5, colour = "white")  +
+#   labs(
+#     title = "Kits distribuidos durante los últimos 7 días",
+#     x = "Número de CRIs",
+#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+#   ) +
+#   scale_x_continuous(
+#     expand = expansion(c(0, 0.1)),
+#     breaks = pretty_breaks(n = 7),
+#     labels = label_number_si()
+#   ) +
+#   theme_unhcr(
+#     grid = FALSE,
+#     axis = "y",
+#     axis_title = "x"
+#   )
+
+
+```
+:::
+
+::: column
+```{r detail_distrib_2_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 5.5}
+
+# Kits by region
+ggplot(kits_region, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
+   geom_text(aes(label = Total),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 6
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "Kits distribuidos durante los últimos 7 días",
+    x = "Número de Kits",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 7),
+    labels = label_number(scale_cut = cut_short_scale())
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    axis_text_size = 18,
+    font_size = 16
+  )
+
+
+```
+:::
+:::
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3.5}
+
+# 
+
+# 
+# 
+# ggplot(rudah_kits_cris_plot) +
+#   geom_col(aes(
+#     x = Tipo,
+#     y = Total,
+#     fill = Tipo
+#   ),
+#   position = position_dodge(width = 0.7),
+#   width = 0.6
+#   ) +
+# #  facet_wrap(~ Oficina, nrow = 2) +
+#     facet_grid(~ region, scales='free', space='free') +
+#   geom_text(aes(
+#     x = Tipo,
+#     y = Total,
+#     group = Tipo,
+#     label = Total
+#   ),
+#   position = position_dodge(width = 0.7),
+#   vjust = -1,
+#   size = 8 / .pt
+#   ) +
+#   scale_fill_unhcr_d(
+#     palette = "pal_unhcr",
+#     nmax = 3,
+#     order = c(2, 3, 1)
+#   ) +
+#   labs(
+#     title = "Asistencia brindada",
+#     y = "Insumos distribuidos",
+#     x = "Oficina de terreno",
+#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+#   ) +
+#  # scale_x_continuous(breaks = pretty_breaks(n = 4)) +
+#   scale_y_continuous(expand = expansion(c(0, 0.1))) +
+#   theme_unhcr(
+#     grid = FALSE,
+#     axis = "x",
+#     axis_title = FALSE,
+#     axis_text = "x"
+#   ) +
+#   ylim(0,rudah_kits_cris_plot_ymax) +
+#   guides(fill = guide_legend(nrow = 2, byrow = TRUE)) +
+#   facet_wrap(~ region, ncol = 3, scales='free') 
+# 
+
+
+
+total_kits_cris_line <- rudah |> 
+ select(today, starts_with("qt_kit"), starts_with("qt_cri")) |>  
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  mutate(Kits = rowSums(across(starts_with("qt_kit")))) |>
+  mutate(CRIs = rowSums(across(starts_with("qt_cri")))) |>
+  select(today, Kits, CRIs) |> 
+  group_by(today) |>
+  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
+  rename(CRIs_FIs = CRIs) |> 
+  pivot_longer(!today, names_to="Tipo", values_to="Total")
+  
+rudah_kits_cris_plot_ymax <- max(total_kits_cris_line$Total)*1.2
+
+ggplot(total_kits_cris_line, aes(
+    x = today,
+    y = Total)) +
+  geom_col(aes(
+    fill = Tipo
+  ),
+  position = position_dodge(width = 0.7),
+  width = 0.6
+  ) +
+  geom_text(aes(
+    group = Tipo,
+    label = Total, 
+    size = 6
+  ),
+  position = position_dodge(width = 0.7),
+  vjust = -1,
+  size = 3
+  ) +
+  scale_fill_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 3,
+    order = c(2, 3, 1)
+  ) +
+  labs(
+    title = "Distribuciones diarias durante los ultimos 7 dias",
+    y = "Cantidad de insumos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_date(breaks = unique(total_kits_cris_line$today)) +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    labels = label_number(scale_cut = cut_short_scale())
+  ) +
+  ylim(0,rudah_kits_cris_plot_ymax) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "x",
+    axis_title = FALSE,
+    font_size = 11
+  ) +
+  guides(fill = guide_legend(nrow = 2, byrow = TRUE))
+
+
+```
+
+El Anexo 1 brinda el desglose de los Kits, CRIs y Food Items distribuidos durante los últimos 7 días por región. \newpage
+
+## Distribuciones acumuladas
+
+::: row
+::: column
+```{r tot_distrib_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
+
+rudah_all <- main  
+
+
+total_kits_all <- rudah_all |> 
+ select(starts_with("qt_kit"))  |>  
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+total_cris_all <- rudah_all |> 
+ select(starts_with("qt_cri")) |> 
+ mutate_all(~coalesce(.,0)) |> 
+ rowSums() |> 
+ sum()
+
+personas_kits_all <- rudah_all |> 
+  mutate(sum = rowSums(across(starts_with("kit_dis_")))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+personas_cris_all <- rudah_all |> 
+  mutate(sum = rowSums(across(starts_with("cri_dis_")))) |> 
+  filter(sum > 0) |> 
+  select("member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
+  rowSums() |> 
+  sum()
+
+
+personas_kits_cris_all <- rudah_all |> 
+  filter(grepl('asistencia_kit', kit_orientacion)) |> 
+  select("member_count") |> 
+  rowSums() |> 
+  sum()
+
+# Loading required packages
+library(ggtext)
+library(ggforce)
+
+kits_cris_plot_all <- data.frame(total_cris_all, total_kits_all) |> 
+  rename("CRI" = total_cris_all) |>
+  rename("Kits" = total_kits_all) |>
+  pivot_longer(cols = CRI:Kits, names_to = "Type", values_to = "Total")
+
+
+# Plot total CRIs and Kits
+ggplot(kits_cris_plot_all) +
+  geom_arc_bar(aes(
+    x0 = 0,
+    y0 = 0,
+    r0 = 0.6,
+    r = 1,
+    amount = Total,
+    fill = Type
+  ),
+  stat = "pie",
+  size = 1,
+  color = "#FFFFFF"
+  ) +
+  geom_richtext(
+    x = c(1.25, -1.25),
+    y = c(-0.3, 0.3),
+    aes(label = paste0(
+      Type,
+      "<br><strong> ",
+      format(Total, big.mark = ","),
+ #     round(Total, 0),
+      "</strong>", "<br>",
+ #     format(round(100 * Total / sum(Total), 1), big.mark = ","),
+      round(100 * Total / sum(Total), 1),
+      "%"
+    )),
+    size = 7,
+    fill = NA,
+    label.color = NA
+  ) +
+  geom_richtext(
+    x = 0,
+    y = 0,
+    label = paste0(
+      "Total distribuido",
+      "<br><strong>",
+      format(sum(kits_cris_plot_all$Total), big.mark = ","),
+#      round(sum(kits_cris_plot_all$Total), 0),
+      "</strong>"
+    ),
+    size = 7,
+    fill = NA,
+    label.color = NA
+  ) +
+  labs(
+    title = "Kits, CRIs y Food Items distribuidos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_fill_unhcr_d(
+    palette = "pal_unhcr",
+    direction = -1
+  ) +
+  scale_x_continuous(expand = expansion(c(0.3, 0.5))) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    axis_text = FALSE,
+    legend = FALSE,
+    font_size = 16
+  )
+
+## Preparing totals by region
+names_lug_all <- c('region')
+rudah_all[,names_lug_all] <- lapply(rudah_all[,names_lug_all] , to_factor)
+
+rudah_kits_cris_plot_all <- rudah_all |>
+  select(region, starts_with("qt_kit"), starts_with("qt_cri")) |>  
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+   mutate(Kits = rowSums(across(starts_with("qt_kit")))) |>
+  mutate(CRIs = rowSums(across(starts_with("qt_cri")))) |>
+  select("region", "Kits", "CRIs") |>
+    group_by(region) |>
+  summarise_at(c("Kits", "CRIs"), sum, na.rm = TRUE) |> 
+  pivot_longer(!region, names_to="Tipo", values_to="Total")
+
+
+rudah_kits_cris_plot_all <- mutate(rudah_kits_cris_plot_all, region = fct_reorder(region, -Total, sum))
+
+cris_region_all <- rudah_kits_cris_plot_all |> 
+  filter(Tipo == "CRIs") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
+
+
+kits_region_all <- rudah_kits_cris_plot_all |> 
+  filter(Tipo == "Kits") |> 
+  filter(Total != 0) |> 
+  select(region, Total) |> 
+  mutate_at(vars(region), as.character)
+
+start_rudah_all = min(rudah_all$today)
+
+total_kits_cris_all = format(sum(rudah_kits_cris_plot_all$Total), big.mark = ",")
+
+total_kits_all = format(sum(subset(rudah_kits_cris_plot_all, Tipo == "Kits")$Total), big.mark = ",")
+total_cris_all = format(sum(subset(rudah_kits_cris_plot_all, Tipo == "CRIs")$Total), big.mark = ",")
+
+
+```
+:::
+
+::: column
+Desde la implementación actual del RUDAH (`r start_rudah_all`) se registró la distribución de un total de `r total_kits_cris_all` insumos, entre ellos `r total_kits_all` Kits y `r total_cris_all` CRIs y Food Items.
+:::
+:::
+
+::: row
+::: column
+```{r detail_distrib_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
+
+
+
+
+
+# CRIs by region
+ggplot(cris_region_all, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
+    geom_text(aes(label = format(Total, big.mark = ",")),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 6
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "CRIs y Food Items distribuidos",
+    x = "Número de CRIs/Food Items",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(0, max(cris_region_all$Total)*1.1)
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    axis_text_size = 18,
+    font_size = 16
+  )
+
+
+```
+:::
+
+::: column
+```{r detail_distrib_2_all, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height= 6}
+
+# Kits by region
+ggplot(kits_region_all, aes(x = Total, y = reorder(region, Total))) +
+  geom_col(
+  fill = unhcr_pal(n = 1, "pal_blue"),
+  width = 0.8
+  ) +
+    geom_text(aes(label = format(Total, big.mark = ",")),
+  position = position_dodge(width = 0.7),
+  hjust = -0.1,
+  size = 6
+  ) +
+#  geom_text(aes(label = Total), hjust = 1.5, colour = "white", size = 8)  +
+  labs(
+    title = "Kits distribuidos",
+    x = "Número de Kits",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_x_continuous(
+     expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+ #   labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(0, max(kits_region_all$Total)*1.1)
+  ) +
+  theme_unhcr(
+    grid = FALSE,
+    axis = "y",
+    axis_title = "x",
+    axis_text_size = 18,
+    font_size = 16
+  )
+
+
+```
+:::
+:::
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE, dpi= 150,  fig.width=7, fig.height=3}
+
+## Mobile average over time of kits and CRI distributions by region
+
+library(zoo)
+library(padr)
+
+## Downloading xls form
+xls <- kobo_form("a9Erto2aYbgJamz8vdrtJt") |> 
+  select(name, label) |> 
+  filter(grepl("qt_", name)) |> 
+  separate_wider_delim(label, delim = "*", names = c("Delete", "label"), too_many = "merge") |> 
+  separate_wider_delim(label, delim = "*", names = c("label", "Delete2"), too_many = "merge") |> 
+  mutate(across(label, str_replace, '\\$', '_')) |> 
+  mutate(across(label, str_replace, '\\{', '_')) |> 
+  mutate(across(label, str_replace, '\\}', '_')) |> 
+  mutate(across(label, str_replace, '__kit_other_', 'Kit (otro)')) |> 
+  mutate(across(label, str_replace, '__cri_other_', 'CRI (otro)')) |> 
+  mutate(label = str_trim(label)) |> 
+  select(name, label) |> 
+  add_row(name = "qt_cri_toallas", label = "Toallas higiénicas") |> 
+  add_row(name = "qt_cri_bloqueador", label = "Bloqueadores solares") |> 
+  add_row(name = "qt_cri_atun", label = "Latas de conserva de atún")
+
+
+## Total trends CRIs and Kits national level
+kits_cris_list_trend_all <- rudah_all |>
+  select(today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(today, Kit_CRI, label, Total) |> 
+  rename("Tipo" = label) |>
+
+  # separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+  # mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  # mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  filter(Total != 0) |> 
+  mutate_at(vars(Total), as.numeric) |>
+  group_by(today, Kit_CRI) |> 
+  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
+  arrange(today, Kit_CRI, -Total) |> 
+  pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
+  ungroup() |> 
+  mutate(group = "group") |> 
+  padr::pad(interval = "day", group = "group") |> 
+  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
+  group_by(group) |> 
+#  filter(sum(Kit) + sum(CRI) != 0) |> 
+  mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
+  mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> 
+  filter(!is.na(cma_kits)) |> 
+  select(today, cma_kits, cma_cris) |> 
+   rename("Kits" = cma_kits) |>
+   rename("CRIs" = cma_cris) |> 
+  pivot_longer(cols = c(Kits, CRIs), names_to = "Tipo", values_to = "Total")
+
+
+ymax_kits_cris_list_trend_all <- max(kits_cris_list_trend_all$Total * 1.1)
+# 
+# ggplot(kits_cris_list_trend_all, aes(
+#     x = today)) +
+#   geom_line(aes(
+#     y = cma_kits
+#   ),
+#   size = 0.5,
+#   color = unhcr_pal(n = 1, "pal_blue")
+#   ) +
+#   geom_line(aes(
+#     y = cma_cris
+#   ),
+#   size = 0.5,
+#   color = unhcr_pal(n = 1, "pal_grey")
+#   ) +
+#   labs(
+#     title = "Distribución de Kits y CRIs",
+#     y = "Numero de insumos",
+#     caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+#   ) +
+#  # scale_x_continuous(breaks = pretty_breaks()) +
+#   scale_y_continuous(
+#     expand = expansion(c(0, 0.1)),
+#     breaks = pretty_breaks(n = 4),
+#     labels = label_number_si(),
+#     limits = c(0, ymax_kits_cris_list_trend_all)
+#   ) +
+#   theme_unhcr(font_size = 20,
+#     grid = "Y",
+#     axis = "x",
+#     axis_title = "y"
+#   ) 
+
+
+
+# Plot
+ggplot(kits_cris_list_trend_all, aes(
+  x = today,
+  y = Total,
+  color = Tipo
+)) +
+ geom_line(size = 0.5) +
+  # geom_dl(aes(label = Tipo),
+  #   method = list(cex = 1,
+  #     dl.trans(x = x + 0.1),
+  #     "last.points"
+  #   ),
+  #   size = 5 
+  # ) +
+  labs(
+    title = "Distribución de Kits, CRIs y Food Items",
+    y = "Numero de insumos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+ # scale_x_continuous(breaks = pretty_breaks()) +
+  scale_x_date(date_labels="%b %Y", date_breaks  ="2 month"
+               # limits = c(min(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+30)
+               ) +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(),
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(0, ymax_kits_cris_list_trend_all)
+  ) +
+  scale_color_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 10,
+    order = c(7, 1)
+  ) +
+  coord_cartesian(clip = "off") +
+     theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_line(colour = "grey"),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=8,
+        family="Lato"),
+    axis.text.y = element_text(size=8,
+        family="Lato"),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=11,
+        family="Lato"),
+    strip.text = element_text(size=12, face = "bold"),
+    title = element_text(size=11,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=6,
+        family="Lato", face = "plain"),
+    legend.position = "none",
+     axis.title = element_blank(),
+ plot.margin = unit(c(0.1, 3, 0.1, 0.1), "cm")
+   ) +
+  geom_text_repel(
+    data = subset(kits_cris_list_trend_all, today == max(today)),
+    aes(label = Tipo),
+    xlim = as.Date(c(max(kits_cris_list_trend_all$today), max(kits_cris_list_trend_all$today)+10)),
+    size = 3,
+    hjust = -2,
+    direction = "y",
+    box.padding = 0.5,
+    nudge_x = 2,
+    segment.color = NA,
+    show.legend = FALSE
+  ) 
+  # geom_smooth(method = "gam",formula = y ~ s(x, bs = "cs", k = 20, sp = 0.1), se = FALSE)
+   
+  # theme_unhcr(
+  #   grid = "Y",
+  #   axis = "x",
+  #   axis_title = "y",
+  #   legend = FALSE
+  # ) +
+  # theme(plot.margin = margin(r = 50))
+
+```
+
+Promedio móvil (10 días) de distribuciones diarias de Kits (en azul) y CRIs/Food Items (en gris) a nivel nacional.
+
+\newpage
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE, dpi=300,  fig.width=7,fig.height=10}
+
+## Mobile average over time of kits and CRI distributions by region
+
+
+
+## First total trends by total kits and CRIs
+kits_cris_list_trend <- rudah_all |>
+  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(region, today, Kit_CRI, label, Total) |> 
+  rename("Tipo" = label) |> 
+    filter(Total != 0) |> 
+  mutate_at(vars(Total), as.numeric) |>
+  group_by(region, today, Kit_CRI) |> 
+  summarise_at(c("Total"), sum, na.rm = TRUE) |> 
+  arrange(region, today, Kit_CRI, -Total) |> 
+  pivot_wider(names_from = Kit_CRI, values_from = Total) |> 
+  ungroup() |> 
+  pad(interval = "day", group = "region") |> 
+  mutate_at(vars(starts_with("Kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("CRI")), ~ replace(., is.na(.), 0)) |>
+  group_by(region) |> 
+#  filter(sum(Kit) + sum(CRI) != 0) |> 
+  mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
+  mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> # Centered moving average
+  filter(!is.na(cma_cris)) 
+  # select(region, today, cma_kits, cma_cris) |> 
+  # pivot_longer(cols = c(cma_kits, cma_cris), names_to = "Tipo", values_to = "CMA") |> 
+  #  na.omit() |> 
+  # group_by(region) %>%
+  # filter(sum(Kit) + sum(CRI) != 0)
+
+
+ymax_kits_cris_list_trend <- max(kits_cris_list_trend$cma_cris * 1.1)
+
+ggplot(kits_cris_list_trend, aes(
+    x = today, group = region)) +
+   geom_line(aes(
+     y = cma_kits
+  ),
+  size = 0.7,
+  color = unhcr_pal(n = 1, "pal_blue"),
+  lineend = "round",
+  linejoin = "round"
+  ) +
+  # geom_smooth(aes(y = cma_kits),
+  #             method = "gam",
+  #             formula = y ~ s(x, bs = "cs", k = 20, sp = 0.05),
+  #             se = FALSE,
+  #             color = unhcr_pal(n = 1, "pal_blue")) +
+    geom_line(aes(
+    y = cma_cris
+  ),
+  size = 0.7,
+  color = unhcr_pal(n = 1, "pal_grey"),
+  lineend = "round",
+  linejoin = "round"
+  ) +
+   # geom_smooth(aes(y = cma_cris),
+   #            method = "gam",
+   #            formula = y ~ s(x, bs = "cs", k = 20, sp = 0.05),
+   #            se = FALSE,
+   #            color = unhcr_pal(n = 1, "pal_grey")) +
+  labs(
+    title = "Distribución de Kits, CRIs y Food Items en el tiempo",
+    subtitle = "Promedio móvil (10 días) de Kits (en azul) y CRIs/Food Items (en gris) por región",
+    y = "Numero de insumos",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+ # scale_x_continuous(breaks = pretty_breaks()) +
+  scale_x_date(date_labels="%b %Y", date_breaks  ="2 month") +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+    labels = label_number(scale_cut = cut_short_scale(),
+    limits = c(0, NA))
+#    limits = c(0, ymax_kits_cris_list_trend)
+  ) +
+  # theme_unhcr(font_size = 45,
+  #   grid = "Y",
+  #   axis = "x",
+  #   axis_title = "y",
+  #   legend = F
+  # ) +
+     theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_line(colour = "grey"),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=6,
+        family="Lato"),
+    axis.text.y = element_text(size=6,
+        family="Lato"),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=6,
+        family="Lato"),
+    strip.text = element_text(size=11, face = "bold"),
+    title = element_text(size=11,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=6,
+        family="Lato", face = "plain"),
+    legend.position = "none",
+     axis.title = element_blank()
+   )  +
+  facet_wrap(~ region, 
+             ncol = 2, 
+             scales='free') 
+  
+```
+
+## Predicción: 30 días de Kits, CRIs y Food Items necesarios
+
+Utilizando los promedios indicados arriba para los últimos dos meses, se puede proyectar que **durante los próximos 30 días** cada región necesitará los siguientes insumos:
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=3}
+
+## Prediction: # of Kits and # of CRIs needed over the coming two weeks, with breakdown of type
+
+## Reference periods
+referencemin = Sys.Date() - 60
+referencemax = Sys.Date()
+
+projectiondays = 30
+
+## Basic prediction calculation based on moving averages
+
+kits_cris_list_trend_pred <- kits_cris_list_trend |> 
+  filter(today > referencemin) |> 
+  na.omit() |> 
+  group_by(region) |> 
+  summarise_at(c("cma_kits", "cma_cris"), mean, na.rm = TRUE) |> 
+  mutate("Kits Necesarios" = round(cma_kits * projectiondays, digits = 0)) |> 
+  mutate("CRIs Necesarios" = round(cma_cris * projectiondays, digits = 0)) |> 
+  mutate(Total = `Kits Necesarios` + `CRIs Necesarios`) |> 
+  arrange(-Total) |> 
+  select(region, "Kits Necesarios", "CRIs Necesarios") 
+  
+
+
+kits_cris_list_trend_pred |>
+  gt() |> 
+  tab_style(
+    style = cell_text(size = px(12)),
+    locations = cells_body()) |> 
+  tab_header(
+    title = md("Predicción: Insumos necesarios"),
+    subtitle = "Por región y tipo de insumo"
+  ) |> 
+  tab_source_note(
+    source_note = md(
+      "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+    )
+  ) |> 
+    opt_row_striping(row_striping = TRUE) |> 
+  tab_options(data_row.padding = px(1),
+                heading.padding = px(3),
+                heading.title.font.size = px(14),
+                heading.subtitle.font.size = px(12),
+                column_labels.font.size = px(12),
+                column_labels.font.weight = px(12),
+                row_group.font.size = px(13),
+                row_group.padding = px(2),
+                source_notes.font.size = px(9),
+              table.width = pct(100))
+
+
+```
+
+Con desglose estimado por tipo de Kit, CRI y Food Item:
+
+```{r, dpi=200, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=4.5}
+
+## Mobile average over time of kits and CRI distributions by region
+
+
+## Trends by Kits and CRIs
+kits_cris_list_trend_detail <- rudah_all |>
+  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  group_by(region, today) |> 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
+
+  
+
+## Adding min and max dates for missing values by region
+kits_cris_list_trend_detail_min <- kits_cris_list_trend_detail |> 
+  group_by(region) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemin)
+
+kits_cris_list_trend_detail_max <- kits_cris_list_trend_detail |> 
+  group_by(region) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemax)
+
+
+
+kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
+  ungroup() |> 
+  bind_rows(kits_cris_list_trend_detail_min) |> 
+  bind_rows(kits_cris_list_trend_detail_max) |>
+  pad(interval = "day", group = "region") |> 
+  mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  na.omit()|> 
+  filter(today > referencemin) |> 
+  na.omit() |> 
+  group_by(region) |> 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+            list(~. * projectiondays)) |> 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+            list(~round(., digits = 0))) |> 
+    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(region, Kit_CRI, label, Total) |> 
+  rename("Detalle" = label) |> 
+  filter(Total > 0) |> 
+  pivot_wider(names_from = region, values_from = Total) |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
+#   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+#   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+# #  mutate(across(c('Detalle'), str_replace, '_', ' '))
+#   mutate_all(funs(str_replace_all(., "_", " "))) |> 
+#   mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+#   mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
+#   mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
+#   mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+#   mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+#   mutate_at(vars(3:last_col()), as.numeric) |>
+  mutate(Total = rowSums(across(3:last_col()))) |>
+  filter(Total != 0) |> 
+  arrange(Kit_CRI, Detalle) |> 
+  select(2:(last_col()-1)) |> 
+  pivot_longer(cols = 2:last_col(), names_to = "region", values_to = "Total") |> 
+  filter(Total > 5) |> 
+  mutate(Detalle = str_remove(Detalle, "(caminante)")) |> 
+  mutate(Detalle = str_remove(Detalle, " – ")) |> 
+  mutate(Detalle = str_remove_all(Detalle, "\\(\\)")) |> 
+  mutate(Detalle = str_remove(Detalle, "para adolescente y/o adulto")) |> 
+  mutate(Detalle = str_remove(Detalle, "personas en ")) |> 
+  mutate(Detalle = str_remove(Detalle, "de niñas, niños y adolescentes "))
+
+
+
+
+ggplot(
+  kits_cris_list_trend_detail,
+  aes(
+    x = region,
+    y = fct_rev(Detalle)
+  )
+) +
+  geom_tile(aes(
+    fill = Total
+  ),
+  color = "white",
+  lwd = .5,
+  linetype = 1
+  ) +
+  geom_text(aes(label = Total), colour = "white", size = 3)  +
+  labs(
+    title = "Kits, CRIs y Food Items posiblemente necesitados por región y tipo de insumo",
+  #  subtitle = "Por región y tipo de insumo",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  scale_fill_stepsn(
+    colors = unhcr_pal(n = 2, "pal_blue"),
+    n.break = 10,
+    name = "Numero de insumos"
+  ) +
+  # coord_fixed() +
+    theme_unhcr(
+    font_size = 11,
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    axis_text_size = 8,
+    legend_title = TRUE,
+    legend = FALSE
+  )
+
+
+```
+
+Cabe resaltar que se trata de datos indicativos basados en actividades pasadas, que no consideran eventuales nuevos eventos o decisiones operativas.
+
+</br>
+
+Entre estos, los siguientes insumos podrían ser destinados a los socios:
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE,  fig.width=7,fig.height=5}
+
+## Mobile average over time of kits and CRI distributions by region by partner
+
+## Preparing the data
+
+kits_cris_list_trend_detail_socios <- rudah_all |>
+  dplyr::filter(grepl("sociounhcr", organizacion) | grepl("obc", organizacion) | grepl("ciremi", organizacion)) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "hias", "HIAS")) |>  
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "crus_roja", "Cruz Roja")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "caritas", "Caritas")) |>  
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "encuentros", "Encuentros")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "scalabrini", "Scalabrini")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "ach", "ACH")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "uv", "UV")) |> 
+  dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
+  dplyr::filter(tipo_socio != "other") |> 
+    select(region, today, organizacion, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  group_by(region, today, organizacion) |> 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
+
+  
+
+
+## Adding min and max dates for missing values by region and organization
+kits_cris_list_trend_detail_socios_min <- kits_cris_list_trend_detail_socios |> 
+  group_by(region, organizacion) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemin)
+
+kits_cris_list_trend_detail_socios_max <- kits_cris_list_trend_detail_socios |> 
+  group_by(region, organizacion) |> 
+  summarize(across(where(is.numeric), ~ 0), today = referencemax)
+
+
+
+## Continuing the pipe: Trends by type of kits and CRIs and partners
+kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
+  ungroup() |> 
+  bind_rows(kits_cris_list_trend_detail_socios_min) |>
+  bind_rows(kits_cris_list_trend_detail_socios_max) |>
+  group_by(region, organizacion) |> 
+  complete(today = seq(min(today), max(today), by = "1 day")) %>%
+  # pad(interval = "day") |>
+  ungroup() |> 
+  mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  na.omit()|> 
+  filter(today > referencemin) |> 
+  na.omit() |> 
+  group_by(region, organizacion) |> 
+  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+            list(~. * projectiondays)) |> 
+  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+            list(~round(., digits = 0))) |> 
+    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |> 
+  mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
+                TRUE ~ 'CRI')) |>
+  select(region, organizacion, Kit_CRI, label, Total) |> 
+  rename("Detalle" = label) |> 
+    filter(Total > 0) |> 
+    #rowSums(na.rm = TRUE) |> 
+  pivot_wider(names_from = region, values_from = Total) |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
+#   separate(Tipo, into=c("Kit_CRI", "Detalle"), sep = 3) |> 
+#   mutate(across(c('Detalle'), substr, 6, nchar(Detalle))) |> 
+# #  mutate(across(c('Detalle'), str_replace, '_', ' '))
+#   mutate_all(funs(str_replace_all(., "_", " "))) |> 
+  # mutate(Detalle = sub("(.)", "\\U\\1", Detalle, perl=TRUE)) |> 
+  mutate_all(funs(str_replace_all(., "acnur", "ACNUR"))) |> 
   mutate_all(funs(str_replace_all(., "nna", "NNA"))) |> 
   mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
   mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
+  mutate(across('organizacion', str_replace, 'obc', 'OBC')) |> 
+  mutate(across('organizacion', str_replace, 'sociounhcr', 'Socio ACNUR Local')) |> 
+  mutate(across('organizacion', str_replace, 'ciremi', 'CIREMI')) |> 
+  mutate_at(vars(4:last_col()), as.numeric) |>
+  mutate_at(vars(4:last_col()), ~replace_na(.,0)) |>
+  mutate(Total = rowSums(across(4:last_col()))) |>
+  rename("Org." = organizacion) |>
+  # mutate_at(vars("PE04":"PE24"), as.numeric) |>
+  # mutate_at(vars("PE04":"PE24"), ~replace_na(.,0)) |>
+  # mutate(Total = rowSums(across("PE04":"PE24"))) |>
+  filter(Total > 5) |> 
+  select(`Org.`, Detalle, Total)
+
+
+ggplot(
+  kits_cris_list_trend_detail_socios,
+  aes(
+    x = `Org.`,
+    y = fct_rev(Detalle)
+  )
+) +
+  geom_tile(aes(
+    fill = Total
+  ),
+  color = "white",
+  lwd = .5,
+  linetype = 1
+  ) +
+  geom_text(aes(label = Total), colour = "white", size = 3)  +
+  labs(
+    title = "Kits, CRIs y Food Items posiblemente necesitados por socio",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+  ) +
+  # scale_x_continuous(
+  #   expand = expansion(c(0, 0)),
+  #   breaks = pretty_breaks(n = 10)
+  # ) +
+  # scale_y_discrete(
+  #   labels = scales::label_wrap(17)
+  # ) +
+  scale_fill_stepsn(
+    colors = unhcr_pal(n = 3, "pal_navy"),
+    n.break = 10,
+    name = "Numero de insumos"
+  ) +
+  # coord_fixed() +
+    theme_unhcr(
+    font_size = 11,
+    grid = FALSE,
+    axis = FALSE,
+    axis_title = FALSE,
+    axis_text_size = 10,
+    legend_title = TRUE,
+    legend = FALSE
+  )
+
+# kits_cris_list_trend_detail_socios |>
+#   kbl() |>
+#   kable_styling(bootstrap_options = "striped", html_font = "Arial", font_size = 9)
+# 
+# library(glue)
+# library(gluedown)
+# 
+# kits_cris_list_trend_detail_socios_top_5 <- kits_cris_list_trend_detail_socios |>
+#   # group_by(Detalle, `Org.`) |>
+#   # summarise_at(vars("Total"), sum, na.rm = TRUE) |>
+#   slice_max(order_by = Total, n = 5) |>
+#   glue_data("**{Detalle}**: {`Org.`} ({Total})") |>
+#   md_bullet()
+
+```
+
+El Anexo 2 brinda un desglose completo por tipo de insumo, socio y región.
+
+\newpage
+
+
+
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
+
+
+
+kits_cris_list <- rudah |>
+  select(region, starts_with("qt_kit"), starts_with("qt_cri")) |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  pivot_longer(!region, names_to="Tipo", values_to="Total") |>
+  rename(`name` = Tipo) |> 
+  left_join(xls, by = "name") |> 
+  separate(name, into=c("Kit_CRI", "Detalle"), sep = 6) |> 
+#  mutate(across(c('Kit_CRI'), substr, 2, nchar(my_column))) |> 
+  mutate(across(c('Kit_CRI'), substr, 4, nchar(Kit_CRI))) |> 
+  select(region, Kit_CRI, Total, label) |> 
+  mutate(across('Kit_CRI', str_replace, 'kit', 'Kit')) |> 
+  mutate(across('Kit_CRI', str_replace, 'cri', 'CRI')) |> 
   filter(Total != 0) |> 
+  rename(`Detalle` = `label`) |> 
+  mutate(Detalle = str_remove(Detalle, "(caminante)")) |> 
+  mutate(Detalle = str_remove(Detalle, " – ")) |> 
+  mutate(Detalle = str_remove_all(Detalle, "\\(\\)")) |> 
+  mutate(Detalle = str_remove(Detalle, "para adolescente y/o adulto")) |> 
+  mutate(Detalle = str_remove(Detalle, "personas en ")) |> 
+  mutate(Detalle = str_remove(Detalle, "de niñas, niños y adolescentes ")) |> 
   mutate_at(vars(Total), as.numeric) |>
   group_by(region, Kit_CRI, Detalle) |> 
   summarise_at(c("Total"), sum, na.rm = TRUE) |> 
@@ -2366,7 +2392,7 @@ cris_list |>
     style = cell_text(size = px(12), indent = px(20)),
     locations = cells_body()) |> 
   tab_header(
-    title = md("Anexo 1b: CRI distribuidos durante los últimos 7 días"),
+    title = md("Anexo 1b: CRI/Food Items distribuidos durante los últimos 7 días"),
     subtitle = "Por región, tipo de insumo y cantidad"
   ) |> 
   tab_source_note(
@@ -2522,7 +2548,7 @@ cris_list_trend_detail_socios |>
     style = cell_text(size = px(12), indent = px(20)),
     locations = cells_body()) |> 
   tab_header(
-    title = md("Anexo 2b: Proyección de CRI necesarios"),
+    title = md("Anexo 2b: Proyección de CRI/Food Items necesarios"),
     subtitle = "Para los próximos 30 días por región, socio y tipo de insumo"
   ) |> 
   tab_source_note(
