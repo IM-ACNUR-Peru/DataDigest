@@ -796,85 +796,6 @@ data(main_last_month, package = "unhcrthemes")
 names <- c('lugar_monitoreo')
 main_last_month[,names] <- lapply(main_last_month[,names] , to_factor)
 
-# 
-# 
-# 
-# main_last_month_chart_mon_fro <- main |> 
-#   select(today, tipo_socio, lugar_monitoreo) |> 
-# #  filter(lugar_monitoreo == "tumbes") |> 
-#   filter(tipo_socio == "hias") |> 
-#   mutate(grupo = "1") |> 
-#   mutate_at(c('grupo'), as.numeric) |> 
-#   group_by(today, lugar_monitoreo) |> 
-#   summarise_at(c("grupo"), sum, na.rm = TRUE) |> 
-#   filter(!is.na(lugar_monitoreo)) |> 
-#   ungroup() |> 
-#   mutate_at(c('lugar_monitoreo'), as.character) |> 
-#   padr::pad(interval = "day", group = "lugar_monitoreo") |> 
-#   mutate_at(vars(starts_with("grupo")), ~ replace(., is.na(.), 0)) |>
-#   group_by(lugar_monitoreo) |> 
-# #  filter(sum(Kit) + sum(CRI) != 0) |> 
-#   mutate(cma_monfro = zoo::rollmean(grupo, 7, fill = NA)) |>   # Centered moving average
-#   filter(!is.na(cma_monfro)) |> 
-#   select(today, lugar_monitoreo, cma_monfro) 
-# 
-# ymax_main_last_month_chart_mon_fro <- max(main_last_month_chart_mon_fro$cma_monfro * 1.1)
-# 
-# # Plot
-# ggplot(main_last_month_chart_mon_fro, aes(
-#   x = today,
-#   y = cma_monfro,
-#   color = lugar_monitoreo
-# )) +
-#   geom_line(size = 1) +
-#   geom_dl(aes(label = lugar_monitoreo),
-#     method = list(cex = 2,
-#       dl.trans(x = x + 0.1),
-#       "last.points"
-#     ),
-#     size = 28 
-#   ) +
-#   labs(
-#     title = "Promedio diario de grupos encuestados por HIAS",
-#     y = "Numero de grupos entrevistados",
-#     caption = "Promedio móvil de grupos entrevistados por región - Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
-#   ) +
-#  # scale_x_continuous(breaks = pretty_breaks()) +
-#   scale_x_date(date_labels="%b %Y", date_breaks  ="1 month") +
-#   scale_y_continuous(
-#     expand = expansion(c(0, 0.1)),
-#     breaks = pretty_breaks(),
-#     labels = label_number_si(),
-#     limits = c(0, ymax_main_last_month_chart_mon_fro)
-#   ) +
-#   scale_color_unhcr_d(
-#     palette = "pal_unhcr",
-#     nmax = 10,
-#     order = c(4, 2, 10)
-#   ) +
-#   coord_cartesian(clip = "off") +
-#      theme(
-#      panel.background = element_rect(fill = "white"),
-#  #   panel.grid = element_blank(),
-#      panel.grid.major.y = element_line(colour = "grey"),
-#      panel.grid.major.x = element_blank(),
-#     axis.ticks = element_blank(),
-#     strip.background = element_rect(colour = "white", fill = "white"),
-#     axis.line.x = element_line(colour = "black"),
-#     axis.text.x = element_text(size=26,
-#         family="Lato"),
-#     axis.text.y = element_text(size=26,
-#         family="Lato"),
-#     text=element_text(size=16,
-#         family="Lato"),
-#     strip.text = element_text(size=24, face = "bold"),
-#     title = element_text(size=38,
-#         family="Lato", face = "bold"),
-#     plot.caption = element_text(size=20,
-#         family="Lato", face = "plain"),
-#     legend.position = "none",
-#      axis.title = element_blank()
-#    ) 
 
 
 main_last_month_chart_previo <- main_last_month |> 
@@ -883,82 +804,98 @@ main_last_month_chart_previo <- main_last_month |>
   summarise(total = n()) |> 
   group_by(lugar_monitoreo) |> 
   mutate(percent = total/sum(total)) |> 
-  ungroup() 
+  ungroup() |> 
+  mutate(percent = round(percent, 2)) |> 
+  filter(!is.na(paisprevio))
+
 #  select(paisprevio, lugar_monitoreo, percent) 
 
+# main_last_month_chart_previo_tot <- main_last_month |> 
+#   select(paisprevio) |> 
+#   group_by(paisprevio) |> 
+#   summarise(total = n()) |> 
+#   mutate(percent = total/sum(total)) |> 
+#   ungroup() |> 
+#   select(paisprevio, percent)
 
-#glimpse(main_last_week_chart_previo)
 
-#ymax_previo <- ifelse(max(main_last_week_chart_previo$total) / sum(main_last_week_chart_previo$total) > 0.89, 1, max(main_last_week_chart_previo$total) / sum(main_last_week_chart_previo$total) + 0.1)
-# 
-# 
-# ggplot(main_last_week_chart_previo, aes(x = reorder(paisprevio, -percent), y = percent)) +
-#   geom_col(
-#            fill = unhcr_pal(n = 1, "pal_blue"),
-#            width = 0.8) +
-#    geom_text(aes(label = paste0( round(percent*100, 0), "%" )), vjust = 1.5, colour = "white", size = 5) +
-#   labs(title = "Principales paises de procedencia",
-#        y = "Personas entrevistadas",
-#        caption = "Fuente: Monitoreo de Fronteras de ACNUR") +
-#   scale_y_continuous(labels=scales::percent) +
-#   coord_cartesian(ylim = c(0.0, 1)) + 
-#  # scale_x_continuous(breaks = pretty_breaks(10)) +
-#  theme_unhcr(font_size = 14,
-#     grid = FALSE,
-#     axis = FALSE,
-#     axis_title = FALSE,
-#     axis_text = "x"
+# ggplot(main_last_month_chart_previo_tot) +
+#   geom_col(aes(
+#     x = percent,
+#     y = reorder(paisprevio, percent)
+#   ),
+#   fill = unhcr_pal(n = 1, "pal_blue"),
+#   width = 0.8
 #   ) +
-#   facet_grid(~ lugar_monitoreo, scales='free', space='free') 
+#   geom_text(aes(
+#     x = percent,
+#     y = reorder(paisprevio, percent),
+#     label = round(percent, 2)
+#   ),
+#   hjust = -0.5,
+#   size = 8 / .pt
+#   ) +
+#   labs(
+#     title = "Principales paises de procedencia durante los últimos 30 días" ) +
+#   scale_x_continuous(expand = expansion(c(0, 0.1))) +
+#   theme_unhcr(
+#     grid = FALSE,
+#     axis = "y",
+#     axis_title = FALSE,
+#     axis_text = "y"
+#   )
 
 
-
-# Plot
 ggplot(
   main_last_month_chart_previo,
-  aes(area = total,
-  subgroup = lugar_monitoreo)) +
-  geom_treemap(
-    color = "#FFFFFF",
-    size = 1,
-    fill = unhcr_pal(n = 1, "pal_blue"),
-    start = "topleft"
-  ) +
-  geom_treemap_text(aes(label = paste0(
-    round(percent * 100, 1),
-    "%\n",
-    paisprevio
-  )),
-  color = "#FFFFFF",
-  size = 12,
-  start = "topleft",
-  family = "Lato"
+  aes(
+    x = fct_rev(paisprevio),
+    y = lugar_monitoreo
+  )
+) +
+  geom_tile(aes(
+    fill = percent
+  ),
+  color = "white",
+  lwd = .5,
+  linetype = 1
   ) +
   labs(
-    title = "Principales paises de procedencia durante los últimos 30 días",
-    caption = "Fuente: Monitoreo de Fronteras de ACNUR"
+ title = "Principales paises de procedencia durante los últimos 30 días",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"  
+ ) +
+  scale_x_discrete(
+    labels = scales::label_wrap(3),
+    position = "top"
+  ) +
+  scale_y_discrete(
+    labels = scales::label_wrap(3)
+  ) +
+  scale_fill_stepsn(
+    colors = c("#CCE3F2", "#75B5E4", "#0088CC", "#00649F", "#004469"),
+    n.break = 5,
+    name = "% de personas por punto"
+  ) +
+  coord_fixed() +
+   geom_text(aes(label = scales::percent(percent)), colour = "white", size = 3
   ) +
   theme_unhcr(
+    font_size = 11,
+    grid = FALSE,
     axis = FALSE,
     axis_title = FALSE,
-    grid = FALSE,
-    font_size = 12
-  ) +
-  geom_treemap_subgroup_border(colour = "white", size = 4) +
-  # geom_treemap_subgroup_text(place = "bottom",
-  #                            grow = F,
-  #                            alpha = 0.6,
-  #                            colour = "#FAFAFA",
-  #                            min.size = 0,
-  #                            max.size = 5) 
- facet_wrap( ~ lugar_monitoreo)
+    axis_text_size = 8,
+    legend_title = TRUE,
+    legend = FALSE
+  )
+
+
+
 
 
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.width=7,fig.height=3.9}
-
-data(main_last_month, package = "unhcrthemes")
 
 
 main_last_month_chart_destino <- main_last_month |> 
@@ -967,76 +904,89 @@ main_last_month_chart_destino <- main_last_month |>
   summarise(total = n()) |> 
   group_by(lugar_monitoreo) |> 
   mutate(percent = total/sum(total)) |> 
-  ungroup() 
+  ungroup() |> 
+  mutate(percent = round(percent, 2)) |> 
+  filter(!is.na(paisdestino))
+
 #  select(paisdestino, lugar_monitoreo, percent) 
 
+# main_last_month_chart_destino_tot <- main_last_month |> 
+#   select(paisdestino) |> 
+#   group_by(paisdestino) |> 
+#   summarise(total = n()) |> 
+#   mutate(percent = total/sum(total)) |> 
+#   ungroup() |> 
+#   select(paisdestino, percent)
 
-#glimpse(main_last_week_chart_destino)
-
-#ymax_destino <- ifelse(max(main_last_week_chart_destino$total) / sum(main_last_week_chart_destino$total) > 0.89, 1, max(main_last_week_chart_destino$total) / sum(main_last_week_chart_destino$total) + 0.1)
-
-# 
-# 
-# ggplot(main_last_week_chart_destino, aes(x = reorder(paisdestino, -percent), y = percent)) +
-#   geom_col(
-#            fill = unhcr_pal(n = 1, "pal_blue"),
-#            width = 0.8) +
-#    geom_text(aes(label = paste0( round(percent*100, 0), "%" )), vjust = 1.5, colour = "white", size = 5) +
-#   labs(title = "Principales paises de destino",
-#        y = "Personas entrevistadas",
-#        caption = "Fuente: Monitoreo de Fronteras de ACNUR") +
-#   scale_y_continuous(labels=scales::percent) +
-#   coord_cartesian(ylim = c(0.0, 1)) + 
-#  # scale_x_continuous(breaks = pretty_breaks(10)) +
-#  theme_unhcr(font_size = 14,
-#     grid = FALSE,
-#     axis = FALSE,
-#     axis_title = FALSE,
-#     axis_text = "x"
-#   ) +
-#   facet_grid(~ lugar_monitoreo, scales='free', space='free') 
-
-
-
-# Plot
 ggplot(
   main_last_month_chart_destino,
-  aes(area = total,
-  subgroup = lugar_monitoreo)) +
-  geom_treemap(
-    color = "#FFFFFF",
-    size = 1,
-    fill = unhcr_pal(n = 1, "pal_navy"),
-    start = "topleft"
-  ) +
-  geom_treemap_text(aes(label = paste0(
-    round(percent * 100, 1),
-    "%\n",
-    paisdestino
-  )),
-  color = "#FFFFFF",
-  size = 12,
-  start = "topleft",
-  family = "Lato"
+  aes(
+    x = fct_rev(paisdestino),
+    y = lugar_monitoreo
+  )
+) +
+  geom_tile(aes(
+    fill = percent
+  ),
+  color = "white",
+  lwd = .5,
+  linetype = 1
   ) +
   labs(
-    title = "Principales paises de destino durante los últimos 30 días",
-    caption = "Fuente: Monitoreo de Fronteras de ACNUR"
+ title = "Principales paises de destino durante los últimos 30 días",
+    caption = "Fuente: Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"  
+ ) +
+  scale_x_discrete(
+    labels = scales::label_wrap(3),
+    position = "top"
+  ) +
+  scale_y_discrete(
+    labels = scales::label_wrap(3)
+  ) +
+  scale_fill_stepsn(
+    colors = c("#CCE3F2", "#75B5E4", "#0088CC", "#00649F", "#004469"),
+    n.break = 5,
+    name = "% de personas por punto"
+  ) +
+  coord_fixed() +
+   geom_text(aes(label = scales::percent(percent)), colour = "white", size = 3
   ) +
   theme_unhcr(
+    font_size = 11,
+    grid = FALSE,
     axis = FALSE,
     axis_title = FALSE,
-    grid = FALSE,
-    font_size = 12
-  ) +
-  geom_treemap_subgroup_border(colour = "white", size = 4) +
-  # geom_treemap_subgroup_text(place = "bottom",
-  #                            grow = F,
-  #                            alpha = 0.6,
-  #                            colour = "#FAFAFA",
-  #                            min.size = 0,
-  #                            max.size = 5) 
- facet_wrap( ~ lugar_monitoreo)
+    axis_text_size = 8,
+    legend_title = TRUE,
+    legend = FALSE
+  )
+
+
+# ggplot(main_last_month_chart_destino_tot) +
+#   geom_col(aes(
+#     x = percent,
+#     y = reorder(paisdestino, percent)
+#   ),
+#   fill = unhcr_pal(n = 1, "pal_blue"),
+#   width = 0.8
+#   ) +
+#   geom_text(aes(
+#     x = percent,
+#     y = reorder(paisdestino, percent),
+#     label = round(percent, 2)
+#   ),
+#   hjust = -0.5,
+#   size = 8 / .pt
+#   ) +
+#   labs(
+#     title = "Principales paises de destino durante los últimos 30 días" ) +
+#   scale_x_continuous(expand = expansion(c(0, 0.1))) +
+#   theme_unhcr(
+#     grid = FALSE,
+#     axis = "y",
+#     axis_title = FALSE,
+#     axis_text = "y"
+#   )
 
 
 ```
