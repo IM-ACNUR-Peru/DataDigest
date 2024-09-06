@@ -42,62 +42,114 @@ kobo_setup(url = "https://kobo.unhcr.org",
 # RUDAH 2023
  x_2023 <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
 main_2023 <- x_2023$main |> 
+  rename(
+      qt_kit_t_familiar =  qt_kit01,
+      qt_kit_t_adulto =  qt_kit02,
+      qt_kit_t_extramujer =  qt_kit03,
+      qt_kit_t_NNA = qt_kit04,
+      qt_kit_t_bebe = qt_kit05,
+      qt_kit_a_adulto = qt_kit06,
+      qt_kit_a_nna = qt_kit07,
+      qt_kit_a_bebe = qt_kit08,
+      qt_kit_re_familia = qt_kit09,
+      qt_kit_re_nna = qt_kit10,
+      qt_kit_re_sola = qt_kit11,
+      qt_kit_re_bebe = qt_kit12,
+      qt_kit_oficina = qt_kit15,
+      qt_kit_escolar = qt_kit16,
+      
+      qt_cri_frazada = qt_cri01,
+      qt_cri_setcocina = qt_cri02,
+      qt_cri_baldes = qt_cri03,
+      qt_cri_galoneras = qt_cri04,
+      qt_cri_sillaruedas = qt_cri05,
+      qt_cri_bastones = qt_cri06,
+      qt_cri_muletas = qt_cri07,
+      qt_cri_botellasagua = qt_cri08,
+      qt_cri_ropa_termica = qt_cri09,
+      qt_cri_mosquitero = qt_cri10,
+      qt_cri_colchoneta = qt_cri11,
+      qt_cri_carpa = qt_cri12,
+      qt_cri_jabones = qt_cri13,
+      qt_cri_bidon = qt_cri14,
+      qt_cri_papelhigienico = qt_cri15,
+      qt_cri_libro_viaje = qt_cri16,
+      qt_cri_libro_heroina = qt_cri17,
+      qt_cri_libro_pabellon = qt_cri18,
+      qt_cri_laptop = qt_cri19,
+      qt_cri_teclado = qt_cri20,
+      qt_cri_tablet = qt_cri21,
+      qt_cri_sandalias_crocs = qt_cri22,
+      qt_cri_mochila = qt_cri23,
+      qt_cri_panales = qt_cri24
+  ) |> 
   select("today":"perfil", "tipo_orientacion":"kit_other",  "sign":"paisprevio", "paisdestino", starts_with("cri_dis"), starts_with("kit_dis"), starts_with("qt_kit"), starts_with("qt_cri"), "member_count")
 member2_2023 <- x_2023$member
 
 
-# RUDAH 2024
+# RUDAH 2024 (hasta agosto)
  x_2024 <- kobo_submissions("aMRCvAGEpGSMsvS4A2VMzC")
 main_2024 <- x_2024$main |> 
-  rename(
-      qt_kit01 = qt_kit_t_familiar,
-      qt_kit02 = qt_kit_t_adulto,
-      qt_kit03 = qt_kit_t_extramujer,
-      qt_kit04 = qt_kit_t_NNA,
-      qt_kit05 = qt_kit_t_bebe,
-      qt_kit06 = qt_kit_a_adulto,
-      qt_kit07 = qt_kit_a_nna,
-      qt_kit08 = qt_kit_a_bebe,
-      qt_kit09 = qt_kit_re_familia,
-      qt_kit10 = qt_kit_re_nna,
-      qt_kit11 = qt_kit_re_sola,
-      qt_kit12 = qt_kit_re_bebe,
-      qt_kit15 = qt_kit_oficina,
-      qt_kit16 = qt_kit_escolar,
-      qt_kit16 = qt_kit_escolar,
-      
-      fi01 = qt_cri_frazada,
-      qt_cri02 = qt_cri_setcocina,
-      qt_cri03 = qt_cri_baldes,
-      qt_cri04 = qt_cri_galoneras,
-      qt_cri05 = qt_cri_sillaruedas,
-      qt_cri06 = qt_cri_bastones,
-      qt_cri07 = qt_cri_muletas,
-      qt_cri08 = qt_cri_botellasagua,
-      qt_cri09 = qt_cri_ropa_termica,
-      qt_cri10 = qt_cri_mosquitero,
-      qt_cri11 = qt_cri_colchoneta,
-      qt_cri12 = qt_cri_carpa,
-      qt_cri13 = qt_cri_jabones,
-      qt_cri14 = qt_cri_bidon,
-      qt_cri15 = qt_cri_papelhigienico,
-      qt_cri16 = qt_cri_libro_viaje,
-      qt_cri17 = qt_cri_libro_heroina,
-      qt_cri18 = qt_cri_libro_pabellon,
-      qt_cri19 = qt_cri_laptop,
-      qt_cri20 = qt_cri_teclado,
-      qt_cri21 = qt_cri_tablet,
-      qt_cri22 = qt_cri_sandalidas_crocs,
-      qt_cri23 = qt_cri_mochila,
-      qt_cri24 = qt_cri_panales
-  ) |> 
-  select("today":"perfil", "tipo_orientacion":"kit_other", "TotalKit":"paisprevio",  "paisdestino", starts_with("cri_dis"), starts_with("kit_dis"), starts_with("qt_kit"), starts_with("qt_cri"), "member_count") |> 
-  mutate_at(vars(ori_gen_other), as.character)
+  select("today":"perfil", "tipo_orientacion":"TotalKitsCRI", "lugar_monitoreo":"paisdestino", starts_with("cri_dis"), starts_with("kit_dis"), starts_with("qt_kit"), starts_with("qt_cri"), "member_count") |> 
+  mutate_at(vars(ori_gen_other), as.character) |> 
+  mutate_at(vars(TotalKit, TotalCRI), as.numeric)
 
 member2_2024 <- x_2024$member
 
-main <- bind_rows(main_2023, main_2024)
-member2 <- bind_rows(member2_2023, member2_2024)
+
+# RUDAH 2024 (desde septiembre)
+ x_2024b <- kobo_submissions("aoSWoUrToEhdL2Zc9pvhJY")
+main_2024b <- x_2024b$main |> 
+  # rename(
+  #     qt_kit01 = qt_kit_t_familiar,
+  #     qt_kit02 = qt_kit_t_adulto,
+  #     qt_kit03 = qt_kit_t_extramujer,
+  #     qt_kit04 = qt_kit_t_NNA,
+  #     qt_kit05 = qt_kit_t_bebe,
+  #     qt_kit06 = qt_kit_a_adulto,
+  #     qt_kit07 = qt_kit_a_nna,
+  #     qt_kit08 = qt_kit_a_bebe,
+  #     qt_kit09 = qt_kit_re_familia,
+  #     qt_kit10 = qt_kit_re_nna,
+  #     qt_kit11 = qt_kit_re_sola,
+  #     qt_kit12 = qt_kit_re_bebe,
+  #     qt_kit15 = qt_kit_oficina,
+  #     qt_kit16 = qt_kit_escolar,
+  # 
+  #     fi01 = qt_cri_frazada,
+  #     qt_cri02 = qt_cri_setcocina,
+  #     qt_cri03 = qt_cri_baldes,
+  #     qt_cri04 = qt_cri_galoneras,
+  #     qt_cri05 = qt_cri_sillaruedas,
+  #     qt_cri06 = qt_cri_bastones,
+  #     qt_cri07 = qt_cri_muletas,
+  #     qt_cri08 = qt_cri_botellasagua,
+  #     qt_cri09 = qt_cri_ropa_termica,
+  #     qt_cri10 = qt_cri_mosquitero,
+  #     qt_cri11 = qt_cri_colchoneta,
+  #     qt_cri12 = qt_cri_carpa,
+  #     qt_cri13 = qt_cri_jabones,
+  #     qt_cri14 = qt_cri_bidon,
+  #     qt_cri15 = qt_cri_papelhigienico,
+  #     qt_cri16 = qt_cri_libro_viaje,
+  #     qt_cri17 = qt_cri_libro_heroina,
+  #     qt_cri18 = qt_cri_libro_pabellon,
+  #     qt_cri19 = qt_cri_laptop,
+  #     qt_cri20 = qt_cri_teclado,
+  #     qt_cri21 = qt_cri_tablet,
+  #     qt_cri22 = qt_cri_sandalidas_crocs,
+  #     qt_cri23 = qt_cri_mochila,
+  #     qt_cri24 = qt_cri_panales
+  # ) |> 
+  select("today":"perfil", "tipo_orientacion":"TotalKitsCRI", "punto_monitoreo":"paisdestino", starts_with("cri_dis"), starts_with("kit_dis"), starts_with("qt_kit"), starts_with("qt_cri"), "member_count") |> 
+  mutate_at(vars(ori_gen_other), as.character) |> 
+  mutate_at(vars(TotalKit, TotalCRI), as.numeric)
+
+member2_2024b <- x_2024b$member
+
+
+main <- bind_rows(main_2023, main_2024, main_2024b)
+member2 <- bind_rows(member2_2023, member2_2024, member2_2024b)
 
 main <- main |> 
     dplyr::filter(fecha <= date_today) |> 
@@ -120,16 +172,16 @@ main_last_week_tumbes <- main_last_week |>
   filter(region == "Tumbes")
 
 main_last_week_tacna <- main_last_week |> 
-  filter(lugar_monitoreo == "Tacna")
+  filter(region == "Tacna")
 
 main_last_week_mdd <- main_last_week |> 
-  filter(lugar_monitoreo == "Madre de Dios")
+  filter(region == "Madre de Dios")
 
 main_last_week_lima <- main_last_week |> 
-  filter(lugar_monitoreo == "Lima")
+  filter(region == "Lima")
 
 main_last_week_puno <- main_last_week |> 
-  filter(lugar_monitoreo == "Puno")
+  filter(region == "Puno")
 
 main_last_month <- main |> 
   dplyr::filter(today > date_start_filter_month) |>
@@ -793,16 +845,16 @@ Durante el último mes se entrevistaron `r nrow(main_last_month)` grupos (`r sum
 
 
 data(main_last_month, package = "unhcrthemes")
-names <- c('lugar_monitoreo')
+names <- c('region')
 main_last_month[,names] <- lapply(main_last_month[,names] , to_factor)
 
 
 
 main_last_month_chart_previo <- main_last_month |> 
-  select(paisprevio, lugar_monitoreo) |> 
-  group_by(paisprevio, lugar_monitoreo) |> 
+  select(paisprevio, region) |> 
+  group_by(paisprevio, region) |> 
   summarise(total = n()) |> 
-  group_by(lugar_monitoreo) |> 
+  group_by(region) |> 
   mutate(percent = total/sum(total)) |> 
   ungroup() |> 
   mutate(percent = round(percent, 2)) |> 
@@ -850,7 +902,7 @@ ggplot(
   main_last_month_chart_previo,
   aes(
     x = fct_rev(paisprevio),
-    y = lugar_monitoreo
+    y = region
   )
 ) +
   geom_tile(aes(
@@ -899,10 +951,10 @@ ggplot(
 
 
 main_last_month_chart_destino <- main_last_month |> 
-  select(paisdestino, lugar_monitoreo) |> 
-  group_by(paisdestino, lugar_monitoreo) |> 
+  select(paisdestino, region) |> 
+  group_by(paisdestino, region) |> 
   summarise(total = n()) |> 
-  group_by(lugar_monitoreo) |> 
+  group_by(region) |> 
   mutate(percent = total/sum(total)) |> 
   ungroup() |> 
   mutate(percent = round(percent, 2)) |> 
@@ -922,7 +974,7 @@ ggplot(
   main_last_month_chart_destino,
   aes(
     x = fct_rev(paisdestino),
-    y = lugar_monitoreo
+    y = region
   )
 ) +
   geom_tile(aes(
@@ -1626,7 +1678,7 @@ library(zoo)
 library(padr)
 
 ## Downloading xls form
-xls <- kobo_form("a9Erto2aYbgJamz8vdrtJt") |> 
+xls <- kobo_form("aoSWoUrToEhdL2Zc9pvhJY") |> 
   select(name, label) |> 
   filter(grepl("qt_", name)) |> 
   separate_wider_delim(label, delim = "*", names = c("Delete", "label"), too_many = "merge") |> 
@@ -1640,17 +1692,22 @@ xls <- kobo_form("a9Erto2aYbgJamz8vdrtJt") |>
   select(name, label) |> 
   add_row(name = "qt_cri_toallas", label = "Toallas higiénicas") |> 
   add_row(name = "qt_cri_bloqueador", label = "Bloqueadores solares") |> 
-  add_row(name = "qt_cri_atun", label = "Latas de conserva de atún")
+  add_row(name = "qt_cri_atun", label = "Latas de conserva de atún") |> 
+  add_row(name = "qt_kit_t_familiar", label = "Kit de higiene (familiar)") |> 
+  add_row(name = "qt_kit13", label = "Kit de alimento") |> 
+  add_row(name = "qt_kit_oficina", label = "Kit de oficina") |> 
+  add_row(name = "qt_kit_escolar", label = "Kit escolar") |> 
+  add_row(name = "qt_kit_t_extramujer", label = "Kit de dignidad (extra mujer)")
 
 
 ## Total trends CRIs and Kits national level
 kits_cris_list_trend_all <- rudah_all |>
-  select(today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  select(today, starts_with("qt_kit"), starts_with("qt_cri")) |>
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  pivot_longer(cols = c(starts_with("qt_")), names_to="Tipo", values_to="Total") |>
   left_join(xls, by = c('Tipo' = 'name')) |> 
   mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
                 TRUE ~ 'CRI')) |>
@@ -1812,12 +1869,12 @@ Promedio móvil (10 días) de distribuciones diarias de Kits (en azul) y CRIs/Fo
 
 ## First total trends by total kits and CRIs
 kits_cris_list_trend <- rudah_all |>
-  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  select(region, today, starts_with("qt_kit"), starts_with("qt_cri")) |>
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
-  pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+  pivot_longer(cols = c(starts_with("qt_")), names_to="Tipo", values_to="Total") |>
   left_join(xls, by = c('Tipo' = 'name')) |> 
   mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
                 TRUE ~ 'CRI')) |>
@@ -1991,13 +2048,13 @@ Con desglose estimado por tipo de Kit, CRI y Food Item:
 
 ## Trends by Kits and CRIs
 kits_cris_list_trend_detail <- rudah_all |>
-  select(region, today, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+  select(region, today, starts_with("qt_kit"), starts_with("qt_cri")) |>
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
   group_by(region, today) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
+  summarise_at(vars(starts_with("qt_kit"), starts_with("qt_cri")), sum, na.rm = TRUE) 
 
   
 
@@ -2018,22 +2075,28 @@ kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
   bind_rows(kits_cris_list_trend_detail_max) |>
   pad(interval = "day", group = "region") |> 
   mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  mutate_at(vars(starts_with("qt_")), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
   na.omit()|> 
   filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+  summarise_at(vars(starts_with("qt_")), mean, na.rm = TRUE) |> 
+  mutate_at(vars(starts_with("qt_")), 
             list(~. * projectiondays)) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+  mutate_at(vars(starts_with("qt_")), 
             list(~round(., digits = 0))) |> 
-    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+    pivot_longer(cols = c(starts_with("qt_")), names_to="Tipo", values_to="Total") |>
   left_join(xls, by = c('Tipo' = 'name')) |> 
   mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
                 TRUE ~ 'CRI')) |>
   select(region, Kit_CRI, label, Total) |> 
   rename("Detalle" = label) |> 
+  filter(Total > 0) |> 
+  ungroup() |> 
+  group_by(region, Kit_CRI, Detalle) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  mutate_if(is.numeric , replace_na, replace = 0) |> 
   filter(Total > 0) |> 
   pivot_wider(names_from = region, values_from = Total) |> 
   mutate_if(is.numeric , replace_na, replace = 0) |> 
@@ -2125,13 +2188,13 @@ kits_cris_list_trend_detail_socios <- rudah_all |>
   dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "uv", "UV")) |> 
   dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
   dplyr::filter(tipo_socio != "other") |> 
-    select(region, today, organizacion, "qt_kit01":"qt_kit_other", "qt_cri01":"qt_cri_other") |>
+    select(region, today, organizacion, starts_with("qt_kit"), starts_with("qt_cri")) |>
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
   group_by(region, today, organizacion) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), sum, na.rm = TRUE) 
+  summarise_at(vars(starts_with("qt_")), sum, na.rm = TRUE) 
 
   
 
@@ -2157,17 +2220,17 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   # pad(interval = "day") |>
   ungroup() |> 
   mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
-  mutate_at(vars("qt_kit01":"qt_cri_other"), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
+  mutate_at(vars(starts_with("qt_")), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
   na.omit()|> 
   filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region, organizacion) |> 
-  summarise_at(vars("qt_kit01":"qt_cri_other"), mean, na.rm = TRUE) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+  summarise_at(vars(starts_with("qt_")), mean, na.rm = TRUE) |> 
+  mutate_at(vars(starts_with("qt_")), 
             list(~. * projectiondays)) |> 
-  mutate_at(vars("qt_kit01":"qt_cri_other"), 
+  mutate_at(vars(starts_with("qt_")), 
             list(~round(., digits = 0))) |> 
-    pivot_longer(cols = c("qt_kit01":"qt_cri_other"), names_to="Tipo", values_to="Total") |>
+    pivot_longer(cols = c(starts_with("qt_")), names_to="Tipo", values_to="Total") |>
   left_join(xls, by = c('Tipo' = 'name')) |> 
   mutate(Kit_CRI = case_when(str_detect(Tipo, 'qt_kit') ~ 'Kit',
                 TRUE ~ 'CRI')) |>
