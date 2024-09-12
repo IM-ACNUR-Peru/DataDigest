@@ -27,11 +27,14 @@ library(httr)
 library(ggrepel)
 library(tools)
 library(stringr)
+library(stringi)
 library(htmltools)
+library(activityinfo)
+library(lubridate)
 
 date_today <- Sys.Date() - 1
 
-date_start_filter <- Sys.Date() - 8
+date_start_filter <- Sys.Date() - 7
 
 date_start_filter_month <- Sys.Date() - 31
 
@@ -216,7 +219,7 @@ main_last_month_puno <- main_last_month |>
 
 Boletín semanal para la operación ACNUR Perú.
 
-## Flujos en frontera
+## Flujos irregulares (DTM)
 
 ```{r pbi_scraping, dpi = 200, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide', fig.height=3.5}
 
@@ -256,15 +259,15 @@ pbi <- function(file, location, pob) {
   df
 }
 
-nat_data_dtm <- pbi("dtm_national_new_2.json", "Nacional", "Total")
-tacna_data_dtm <- pbi("dtm_tacna_new_2.json", "Tacna", "Total")
-tumbes_data_dtm <- pbi("dtm_tumbes_new_2.json", "Tumbes", "Total")
-puno_data_dtm <- pbi("dtm_puno_new_2.json", "Puno", "Total")
+nat_data_dtm <- pbi("json/dtm_national_new_2.json", "Nacional", "Total")
+tacna_data_dtm <- pbi("json/dtm_tacna_new_2.json", "Tacna", "Total")
+tumbes_data_dtm <- pbi("json/dtm_tumbes_new_2.json", "Tumbes", "Total")
+puno_data_dtm <- pbi("json/dtm_puno_new_2.json", "Puno", "Total")
 
-nat_data_dtm_ven <- pbi("dtm_national_VEN.json", "Nacional", "Ven")
-tacna_data_dtm_ven <- pbi("dtm_tacna_VEN.json", "Tacna", "Ven")
-tumbes_data_dtm_ven <- pbi("dtm_tumbes_VEN.json", "Tumbes", "Ven")
-puno_data_dtm_ven <- pbi("dtm_puno_VEN.json", "Puno", "Ven")
+nat_data_dtm_ven <- pbi("json/dtm_national_VEN.json", "Nacional", "Ven")
+tacna_data_dtm_ven <- pbi("json/dtm_tacna_VEN.json", "Tacna", "Ven")
+tumbes_data_dtm_ven <- pbi("json/dtm_tumbes_VEN.json", "Tumbes", "Ven")
+puno_data_dtm_ven <- pbi("json/dtm_puno_VEN.json", "Puno", "Ven")
 
 
 # All together now!
@@ -480,11 +483,11 @@ ultimos_flujos |>
 
 <div class = "column column-45">
 
-En promedio, en las últimas 4 semanas de observaciones, se contaron **`r tot_entradas_promedio` entradas** (`r ven_entradas_promedio` de personas venezolanas) y **`r tot_salidas_promedio` salidas** (`r ven_salidas_promedio` de personas venezolanas) por un **saldo promedio de `r tot_entradas_promedio - tot_salidas_promedio` personas** (`r ven_entradas_promedio - ven_salidas_promedio` de personas venezolanas).
+En promedio, en las últimas 4 semanas de observaciones, se contaron **`r tot_entradas_promedio` entradas diarias** (`r ven_entradas_promedio` de personas venezolanas) y **`r tot_salidas_promedio` salidas diarias** (`r ven_salidas_promedio` de personas venezolanas) por un **saldo promedio de `r tot_entradas_promedio - tot_salidas_promedio` personas** (`r ven_entradas_promedio - ven_salidas_promedio` de personas venezolanas).
 
 Durante los últimos 12 meses, el saldo diario según conteos DTM ha sido de **`r year_tot_entradas_promedio - year_tot_salidas_promedio` personas** (`r year_ven_entradas_promedio - year_ven_salidas_promedio` de personas venezolanas).
 
-Cabe resaltar que estas cifras no corresponden necesariamente a las estimaciones del GTRM, que utilizan fuentes adicionales a la DTM.
+Cabe resaltar que estas cifras no corresponden necesariamente a las estimaciones del GTRM.
 
 Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiZjQyMzhlZjMtNjU1OS00OTJiLTk1YWMtZjI4NWEzYTYyNTg4IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
 
@@ -497,13 +500,1301 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 
 \newpage
 
+## Flujos regulares
+```{r snm_activityinfo_setup, echo=FALSE, warning=FALSE}
+
+activityInfoToken(Sys.getenv('ACTIVITYINFO_API'), prompt = FALSE)
+
+snm_data <- queryTable("c6zrl40m0qysfrj3") |> 
+  dplyr::filter(grepl("2024|2023", Mes))
+
+snm_month <- as.character(month(max(snm_data$Update), label = TRUE))
+
+
+```
+
+La Superintendencia Nacional de Migraciones reporta los siguientes flujos de ingreso y salidas regulares (todas las nacionalidades) durante los últimos 12 meses:
+```{r snm_activityinfo,dpi = 200,  echo=FALSE, warning=FALSE, fig.height=3.5}
+# Entries and exits total since Jan 2023 by month
+
+tot_snm <- snm_data |> 
+  select(Flujos, Mes, Total, Update) |> 
+  group_by(Flujos, Mes, Update) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  mutate(Mes = paste(Mes, "-01", sep="")) |> 
+  mutate(Mes = ymd(Mes)) |> 
+  mutate(Update = ymd(Update)) |> 
+  mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(year(Update) != year(Sys.Date()), Tot_Days_Mes, if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes))) |> 
+  filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
+  mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0))
+
+tot_snm_saldo <- tot_snm |> 
+  select(Flujos, Mes, Total) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |>
+  mutate(Saldo = Ingresos - Salidas) |> 
+  mutate(Flujos = "") |> 
+  select(Mes, Saldo)
+
+tot_snm <- tot_snm |> 
+  select(Flujos, Mes, Promedio_Diario) 
+  # group_by(Flujos)  |> 
+  # slice_tail(n = 12) |> 
+  # ungroup()
+
+  
+# ggplot(data = tot_snm) +
+#   geom_col(aes(Mes,
+#     Saldo,
+#     fill = "Saldo Mensual"
+#   ),
+#   width = 6
+#   ) +
+#    geom_text_repel(
+#     aes(Mes, Saldo, label = Saldo),
+#     size = 3,
+#  #   hjust = -2,
+#      direction = "y",
+#      box.padding = unit(1, "lines"),
+#      point.padding = unit(1, "lines"),
+#      segment.color = NA,
+#      min.segment.length = 0
+#     # nudge_y = 2
+#     # segment.color = NA,
+#     # show.legend = FALSE
+#   ) +
+#   geom_line(aes(Mes,
+#     Ingresos,
+#     color = "Ingresos"
+#   ),
+#   size = 0.7
+#   ) +
+#      geom_text_repel(
+#     aes(Mes, Ingresos, label = Ingresos),
+#     size = 3,
+#  #   hjust = -2,
+#      direction = "y",
+#      box.padding = unit(1, "lines"),
+#      point.padding = unit(1, "lines"),
+#      segment.color = NA,
+#      min.segment.length = 0
+#     # nudge_y = 2
+#     # segment.color = NA,
+#     # show.legend = FALSE
+#   ) +
+#   geom_line(aes(Mes,
+#     Salidas,
+#     color = "Salidas"
+#   ),
+#   size = 0.7
+#   ) +
+#      geom_text_repel(
+#     aes(Mes, Salidas, label = Salidas),
+#     size = 3,
+#  #   hjust = -2,
+#      direction = "y",
+#      box.padding = unit(1, "lines"),
+#      point.padding = unit(1, "lines"),
+#      segment.color = NA,
+#      min.segment.length = 0
+#     # nudge_y = 2
+#     # segment.color = NA,
+#     # show.legend = FALSE
+#   ) +
+#   scale_fill_manual(values = setNames(
+#     unhcr_pal(n = 1, "pal_blue"),
+#     "Saldo Mensual"
+#   )) +
+#   scale_color_manual(values = setNames(
+#     unhcr_pal(n = 1, "pal_red"),
+#     "Ingresos"
+#   )) +
+#   scale_color_manual(values = setNames(
+#     unhcr_pal(n = 1, "pal_green"),
+#     "Salidas"
+#   )) +
+#   scale_x_continuous(breaks = pretty_breaks(n = nrow(tot_snm))) +
+#   scale_y_continuous("Saldo Mensual",
+#     expand = expansion(c(0, 0.2)),
+#     breaks = pretty_breaks(),
+#     sec.axis = sec_axis(~ . / 10,
+#       breaks = pretty_breaks(),
+#       name = "Flujos diarios"
+#     )
+#   ) +
+#   theme(
+#      panel.background = element_rect(fill = "white"),
+#  #   panel.grid = element_blank(),
+#      panel.grid.major.y = element_blank(),
+#      panel.grid.major.x = element_blank(),
+#     axis.ticks = element_blank(),
+#     strip.background = element_rect(colour = "white", fill = "white"),
+#     axis.text.x = element_text(size=9,
+#         family="Lato"),
+#     axis.text.y = element_blank(),
+#     axis.line.x = element_line(colour = "black"),
+#     text = element_text(size=9,
+#         family="Lato"),
+#     strip.text = element_text(size=12, face = "bold"),
+#     title = element_text(size=14,
+#         family="Lato", face = "bold"),
+#     plot.caption = element_text(size=6,
+#         family="Lato", face = "plain"),
+#     legend.position = "bottom",
+#     legend.title = element_blank(),
+#      axis.title = element_blank(),
+#      panel.spacing = unit(1, "lines")  # Adjust the space between facets
+#    )
+# 
+
+
+
+# Plot
+ggplot(tot_snm, 
+       aes(
+  x = Mes,
+  y = Promedio_Diario,
+  color = Flujos
+)) +
+#    annotate("rect", xmin = max(last_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(
+ #   title = "Flujos en frontera",
+    y = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+#   scale_x_continuous(
+#     breaks = last_data_dtm$date,
+# #    limits = c(start_date, max(all_data_dtm$date)+7)
+#     labels = format(last_data_dtm$date, "%d-%b")
+#   ) +
+  # scale_x_date(
+  #   date_labels="%b %Y", 
+  #   date_breaks  = all_data_dtm$date,
+  #              limits = c(start_date, max(all_data_dtm$date)+7)
+  #              ) +
+  # coord_cartesian(clip = "off") +
+  # facet_wrap(~ level, ncol = 2, scales='free') +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+#    labels = label_number(scale_cut = cut_short_scale())
+    limits = c(min(tot_snm$Promedio_Diario) * 0.8, max(tot_snm$Promedio_Diario) * 1.1)
+  ) +
+  scale_color_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 10,
+    order = c(1, 3)
+  ) +
+  geom_text_repel(
+    aes(label = Promedio_Diario),
+    size = 3,
+ #   hjust = -2,
+     direction = "y",
+     box.padding = unit(1, "lines"),
+     point.padding = unit(1, "lines"),
+     segment.color = NA,
+     min.segment.length = 0
+    # nudge_y = 2
+    # segment.color = NA,
+    # show.legend = FALSE
+  ) +
+  # geom_text(
+  #   aes(label = Total),
+  #   nudge_x = 0.25,
+  #   nudge_y = 20,
+  #   check_overlap = TRUE,
+  #   size = 7
+  # ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=9,
+        family="Lato"),
+    axis.text.y = element_blank(),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=9,
+        family="Lato"),
+    strip.text = element_text(size=12, face = "bold"),
+    title = element_text(size=14,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=6,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+saldo_2024_tot <- snm_data |> 
+  group_by(Flujos) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  pivot_wider(names_from = "Flujos", values_from = "Total") |> 
+  mutate(Saldo = Ingresos - Salidas)
+
+saldo_total <- format(sum(saldo_2024_tot$Saldo), big.mark = ",")
+
+
+# Overall chart since Jan 2023
+
+# PCF con más flujos
+
+
+
+
+
+```
+Entre el 1/Ene 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el **saldo total de flujos regulares ha sido `r saldo_total`**.
+
+<br>
+
+::: row
+
+::: column
+
+```{r snm_frontera, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=10}
+
+snm_frontera <- snm_data |> 
+  dplyr::filter(grepl("2024", Mes)) |> 
+  select(Flujos, Frontera, Total) |> 
+  group_by(Flujos, Frontera) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |> 
+  mutate(Total = Ingresos + Salidas) |> 
+  mutate(across(Frontera, str_replace, 'Aeropuerto_Puerto', 'Aero/Puertos')) 
+
+
+ggplot(snm_frontera) +
+  geom_col(aes(-Ingresos,
+    reorder(Frontera, Total),
+    fill = "Ingresos"
+  ),
+  width = 0.7
+  ) +
+  geom_col(aes(Salidas,
+    reorder(Frontera, Total),
+    fill = "Salidas"
+  ),
+  width = 0.7
+  ) +
+  geom_text(aes(-Ingresos,
+    Frontera,
+    label = format(Ingresos, big.mark = ",")
+  ),
+  hjust = 1.25,
+  size = 14 / .pt
+  ) +
+  geom_text(aes(Salidas,
+    Frontera,
+    label = format(Salidas, big.mark = ",")
+  ),
+  hjust = -0.25,
+  size = 14 / .pt
+  ) +
+  labs(
+    title = "Ingresos y salidas totales",
+    subtitle = "Por frontera en 2024",
+    caption = "Fuente: Fuente: SNM"
+  ) +
+  scale_x_continuous(expand = expansion(c(0.2, 0.2)),
+      limits = c(-max(snm_frontera$Ingresos) * 1.4, max(snm_frontera$Salidas) * 1.4)
+) +
+  scale_fill_manual(values = setNames(
+    unhcr_pal(n = 3, "pal_unhcr")[c(2, 1)],
+    c("Ingresos", "Salidas")
+  )) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.y = element_text(size=16,
+        family="Lato"),
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+```
+  
+::: 
+
+::: column
+```{r snm_puntos, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=10}
+
+snm_puntos <- snm_data |> 
+  dplyr::filter(grepl("2024", Mes)) |> 
+  select(Flujos, Punto, Total) |> 
+  mutate(across(Punto, str_replace, 'PCF TUMBES-CEBAFEV1PER', 'CEBAF (Tumbes)')) |> 
+  mutate(across(Punto, str_replace, 'PCF TUMBES-CEBAFEV1ECU', 'CEBAF (Tumbes)')) |> 
+  mutate(across(Punto, str_replace, 'A.I.J.CH.', 'Aeropuerto (Lima)')) |> 
+  mutate(across(Punto, str_replace, 'STA. ROSA', 'Sta. Rosa (Tacna)')) |> 
+  mutate(across(Punto, str_replace, 'A.I.J.CH.', 'Aeropuerto (Lima)')) |> 
+  mutate(across(Punto, str_replace, 'CEBAF DESAGUADERO', 'CEBAF (Puno)')) |> 
+  mutate(across(Punto, str_replace, 'DESAGUADERO', 'Desaguadero (Puno)')) |> 
+  mutate(across(Punto, str_replace, 'PCM CUSCO AIAVA', 'Aeropuerto (Cusco)')) |> 
+  mutate(across(Punto, str_replace, 'PCF CARANCAS', 'Carancas (Puno)')) |> 
+  mutate(across(Punto, str_replace, 'KASANI', 'Kasani (Puno)')) |> 
+  mutate(across(Punto, str_replace, 'PUERTO CALLAO', 'Puerto (Callao)')) |> 
+  mutate(across(Punto, str_replace, 'CEBAF LA TINA - MACARA', 'CEBAF (La Tina)')) |> 
+  group_by(Flujos, Punto) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |> 
+  mutate(Total = Ingresos + Salidas) |> 
+  arrange(desc(Total)) |> 
+  slice_head(n = 10)
+
+ggplot(snm_puntos) +
+  geom_col(aes(-Ingresos,
+    reorder(Punto, Total),
+    fill = "Ingresos"
+  ),
+  width = 0.7
+  ) +
+  geom_col(aes(Salidas,
+    reorder(Punto, Total),
+    fill = "Salidas"
+  ),
+  width = 0.7
+  ) +
+  geom_text(aes(-Ingresos,
+    Punto,
+    label = format(Ingresos, big.mark = ",")
+  ),
+  hjust = 1.25,
+  size = 14 / .pt
+  ) +
+  geom_text(aes(Salidas,
+    Punto,
+    label = format(Salidas, big.mark = ",")
+  ),
+  hjust = -0.25,
+  size = 14 / .pt
+  ) +
+  labs(
+    title = "Puntos Fronterizos",
+    subtitle = "Más utilizados en 2024",
+    caption = "Fuente: Fuente: SNM"
+  ) +
+  scale_x_continuous(expand = expansion(c(0.2, 0.2)),
+      limits = c(-max(snm_puntos$Ingresos) * 1.4, max(snm_puntos$Salidas) * 1.4)
+) +
+  scale_fill_manual(values = setNames(
+    unhcr_pal(n = 3, "pal_unhcr")[c(2, 1)],
+    c("Ingresos", "Salidas")
+  )) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.y = element_text(size=16,
+        family="Lato"),
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+```
+::: 
+
+::: 
+
+\newpage
+
+::: row
+::: column
+
+```{r snm_activityinfo_ecu, echo=FALSE, warning=FALSE}
+# Entries and exits total since Jan 2023 by month
+
+tot_snm_ecu <- snm_data |> 
+  filter(Nacionalidad == "ECUATORIANA") |> 
+  select(Flujos, Mes, Total, Update) |> 
+  group_by(Flujos, Mes, Update) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  mutate(Mes = paste(Mes, "-01", sep="")) |> 
+  mutate(Mes = ymd(Mes)) |> 
+  mutate(Update = ymd(Update)) |> 
+  mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
+  mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
+
+
+tot_snm_saldo_ecu <- tot_snm_ecu |> 
+  select(Flujos, Mes, Total) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |>
+  mutate(Saldo = Ingresos - Salidas) |> 
+  mutate(Flujos = "") |> 
+  select(Mes, Saldo) |> 
+  mutate(Q = quarter(Mes)) |> 
+  mutate(y = year(Mes)) |> 
+  mutate(Q = paste( y,"-", "Q", Q, sep = "")) |> 
+  group_by(Q) |> 
+  summarise_at(vars("Saldo"), sum, na.rm = TRUE) 
+#  slice_tail(n = 4)
+
+
+tot_snm_ecu <- tot_snm_ecu |> 
+  select(Flujos, Mes, Promedio_Diario) |> 
+  pivot_wider(names_from = Flujos, values_from = Promedio_Diario) |> 
+  mutate(Total = Ingresos + Salidas) |> 
+  # group_by(Flujos) |> 
+  # slice_tail(n = 12) |> 
+  # ungroup()
+  mutate(
+    last_value = Mes == max(Mes),
+    top_2 = Total %in% sort(unique(Total), decreasing = TRUE)[1:2],
+    bottom_2 = Total %in% sort(unique(Total))[1:2]
+  ) |> 
+  select(Mes, Ingresos, Salidas, last_value, top_2, bottom_2) |> 
+  pivot_longer(c(Ingresos, Salidas), names_to = "Flujos", values_to = "Promedio_Diario")
+
+
+
+# Plot
+ggplot(tot_snm_ecu, 
+       aes(
+  x = Mes,
+  y = Promedio_Diario,
+  color = Flujos
+)) +
+#    annotate("rect", xmin = max(last_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(
+    title = "Personas ecuatorianas",
+    subtitle = "Promedio de flujos diarios",
+    y = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+#   scale_x_continuous(
+#     breaks = last_data_dtm$date,
+# #    limits = c(start_date, max(all_data_dtm$date)+7)
+#     labels = format(last_data_dtm$date, "%d-%b")
+#   ) +
+  # scale_x_date(
+  #   date_labels="%b %Y", 
+  #   date_breaks  = all_data_dtm$date,
+  #              limits = c(start_date, max(all_data_dtm$date)+7)
+  #              ) +
+  # coord_cartesian(clip = "off") +
+  # facet_wrap(~ level, ncol = 2, scales='free') +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+#    labels = label_number(scale_cut = cut_short_scale())
+    limits = c(min(tot_snm_ecu$Promedio_Diario) * 0.8, max(tot_snm_ecu$Promedio_Diario) * 1.1)
+  ) +
+  scale_color_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 10,
+    order = c(1, 3)
+  ) +
+  geom_text_repel(
+    aes(label = ifelse(last_value | top_2 | bottom_2, format(Promedio_Diario, big.mark = ","), NA)),
+    size = 6,
+ #   hjust = -2,
+     direction = "y",
+     box.padding = unit(1, "lines"),
+     point.padding = unit(1, "lines"),
+     segment.color = NA,
+     min.segment.length = 0
+    # nudge_y = 2
+    # segment.color = NA,
+    # show.legend = FALSE
+  ) +
+  # geom_text(
+  #   aes(label = Total),
+  #   nudge_x = 0.25,
+  #   nudge_y = 20,
+  #   check_overlap = TRUE,
+  #   size = 7
+  # ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=16,
+        family="Lato"),
+    axis.text.y = element_blank(),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+saldo_2024_tot_ecu <- snm_data |> 
+  filter(Nacionalidad == "ECUATORIANA") |> 
+  group_by(Flujos) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  pivot_wider(names_from = "Flujos", values_from = "Total") |> 
+  mutate(Saldo = Ingresos - Salidas)
+
+
+saldo_ecu <- format(sum(saldo_2024_tot_ecu$Saldo), big.mark = ",")
+
+
+# Overall chart since Jan 2023
+
+# PCF con más flujos
+
+
+
+
+
+```
+Entre el 1/Ene de 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el **saldo total de flujos regulares ha sido `r saldo_ecu`**.
+
+```{r snm_saldo_ecu, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=3.8}
+
+min_saldo_ecu <- if_else(min(tot_snm_saldo_ecu$Saldo) > 0, 0, min(tot_snm_saldo_ecu$Saldo) * 1.1)
+max_saldo_ecu <- if_else(max(tot_snm_saldo_ecu$Saldo) < 0, 0, max(tot_snm_saldo_ecu$Saldo) * 1.1)
+
+# Saldo trimestral
+ggplot(tot_snm_saldo_ecu, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))) +
+  geom_col(
+  fill = ifelse(tot_snm_saldo_ecu$Saldo < 0, "#EF4A60", "#00B398"),
+  width = 0.5
+  ) +
+  geom_text(aes(label = format(Saldo, big.mark = ","),
+                colour = ifelse(Saldo < 0, "white", "black")),
+            position = position_dodge(width = 0.7),
+            hjust = -0.1,
+            size = 7
+  ) +
+  scale_colour_identity() +  # This ensures the colours are used as is
+  labs(
+    title = "Saldo trimestral",
+    x = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4), 
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(min_saldo_ecu, max_saldo_ecu)
+  ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.y = element_text(size=16,
+        family="Lato"),
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+
+```
+
+::: 
+
+::: column
+```{r snm_activityinfo_col, echo=FALSE, warning=FALSE}
+# Entries and exits total since Jan 2023 by month
+
+tot_snm_col <- snm_data |> 
+  filter(Nacionalidad == "COLOMBIANA") |> 
+  select(Flujos, Mes, Total, Update) |> 
+  group_by(Flujos, Mes, Update) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  mutate(Mes = paste(Mes, "-01", sep="")) |> 
+  mutate(Mes = ymd(Mes)) |> 
+  mutate(Update = ymd(Update)) |> 
+  mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
+  mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
+
+tot_snm_saldo_col <- tot_snm_col |> 
+  select(Flujos, Mes, Total) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |>
+  mutate(Saldo = Ingresos - Salidas) |> 
+  mutate(Flujos = "") |> 
+  select(Mes, Saldo) |> 
+  mutate(Q = quarter(Mes)) |> 
+  mutate(y = year(Mes)) |> 
+  mutate(Q = paste( y,"-", "Q", Q, sep = "")) |> 
+  group_by(Q) |> 
+  summarise_at(vars("Saldo"), sum, na.rm = TRUE)
+
+tot_snm_col <- tot_snm_col |> 
+  select(Flujos, Mes, Promedio_Diario) |> 
+  pivot_wider(names_from = Flujos, values_from = Promedio_Diario) |> 
+  mutate(Total = Ingresos + Salidas) |> 
+  # group_by(Flujos) |> 
+  # slice_tail(n = 12) |> 
+  # ungroup()
+  mutate(
+    last_value = Mes == max(Mes),
+    top_2 = Total %in% sort(unique(Total), decreasing = TRUE)[1:2],
+    bottom_2 = Total %in% sort(unique(Total))[1:2]
+  ) |> 
+  select(Mes, Ingresos, Salidas, last_value, top_2, bottom_2) |> 
+  pivot_longer(c(Ingresos, Salidas), names_to = "Flujos", values_to = "Promedio_Diario")
+
+
+
+  
+
+
+
+# Plot
+ggplot(tot_snm_col, 
+       aes(
+  x = Mes,
+  y = Promedio_Diario,
+  color = Flujos
+)) +
+#    annotate("rect", xmin = max(last_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(
+    title = "Personas colombianas",
+    subtitle = "Promedio de flujos diarios",
+    y = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+#   scale_x_continuous(
+#     breaks = last_data_dtm$date,
+# #    limits = c(start_date, max(all_data_dtm$date)+7)
+#     labels = format(last_data_dtm$date, "%d-%b")
+#   ) +
+  # scale_x_date(
+  #   date_labels="%b %Y", 
+  #   date_breaks  = all_data_dtm$date,
+  #              limits = c(start_date, max(all_data_dtm$date)+7)
+  #              ) +
+  # coord_cartesian(clip = "off") +
+  # facet_wrap(~ level, ncol = 2, scales='free') +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+#    labels = label_number(scale_cut = cut_short_scale())
+    limits = c(min(tot_snm_col$Promedio_Diario) * 0.8, max(tot_snm_col$Promedio_Diario) * 1.1)
+  ) +
+  scale_color_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 10,
+    order = c(1, 3)
+  ) +
+  geom_text_repel(
+   aes(label = ifelse(last_value | top_2 | bottom_2, format(Promedio_Diario, big.mark = ","), NA)),
+   size = 6,
+ #   hjust = -2,
+     direction = "y",
+     box.padding = unit(1, "lines"),
+     point.padding = unit(1, "lines"),
+     segment.color = NA,
+     min.segment.length = 0
+    # nudge_y = 2
+    # segment.color = NA,
+    # show.legend = FALSE
+  ) +
+  # geom_text(
+  #   aes(label = Total),
+  #   nudge_x = 0.25,
+  #   nudge_y = 20,
+  #   check_overlap = TRUE,
+  #   size = 7
+  # ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=16,
+        family="Lato"),
+    axis.text.y = element_blank(),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+saldo_2024_tot_col <- snm_data |> 
+  filter(Nacionalidad == "COLOMBIANA") |> 
+  group_by(Flujos) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  pivot_wider(names_from = "Flujos", values_from = "Total") |> 
+  mutate(Saldo = Ingresos - Salidas)
+
+saldo_col <- format(sum(saldo_2024_tot_col$Saldo), big.mark = ",")
+
+
+# Overall chart since Jan 2023
+
+# PCF con más flujos
+
+
+
+
+
+```
+Entre el 1/Ene de 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el **saldo total de flujos regulares ha sido `r saldo_col`**.
+
+```{r snm_saldo_col, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=3.8}
+
+min_saldo_col <- if_else(min(tot_snm_saldo_col$Saldo) > 0, 0, min(tot_snm_saldo_col$Saldo) * 1.1)
+max_saldo_col <- if_else(max(tot_snm_saldo_col$Saldo) < 0, 0, max(tot_snm_saldo_col$Saldo) * 1.1)
+ 
+# Saldo triestral
+ggplot(tot_snm_saldo_col, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))) +
+  geom_col(
+  fill = ifelse(tot_snm_saldo_col$Saldo < 0, "#EF4A60", "#00B398"),
+  width = 0.5
+  ) +
+  geom_text(aes(label = format(Saldo, big.mark = ","),
+                colour = ifelse(Saldo < 0, "white", "black")),
+            position = position_dodge(width = 0.7),
+            hjust = -0.1,
+            size = 7
+  ) +
+  scale_colour_identity() +  # This ensures the colours are used as is
+  labs(
+    title = "Saldo trimestral",
+    x = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4), 
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(min_saldo_col, max_saldo_col)
+  ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.y = element_text(size=16,
+        family="Lato"),
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+
+```
+
+:::
+:::
+
+<br>
+
+::: row
+::: column
+
+```{r snm_activityinfo_bol, echo=FALSE, warning=FALSE}
+# Entries and exits total since Jan 2023 by month
+
+tot_snm_bol <- snm_data |> 
+  filter(Nacionalidad == "BOLIVIANA") |> 
+  select(Flujos, Mes, Total, Update) |> 
+  group_by(Flujos, Mes, Update) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  mutate(Mes = paste(Mes, "-01", sep="")) |> 
+  mutate(Mes = ymd(Mes)) |> 
+  mutate(Update = ymd(Update)) |> 
+  mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
+  mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
+
+tot_snm_saldo_bol <- tot_snm_bol |> 
+  select(Flujos, Mes, Total) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |>
+  mutate(Saldo = Ingresos - Salidas) |> 
+  mutate(Flujos = "") |> 
+  select(Mes, Saldo) |> 
+  mutate(Q = quarter(Mes)) |> 
+  mutate(y = year(Mes)) |> 
+  mutate(Q = paste( y,"-", "Q", Q, sep = "")) |> 
+  group_by(Q) |> 
+  summarise_at(vars("Saldo"), sum, na.rm = TRUE)
+
+tot_snm_bol <- tot_snm_bol |> 
+  select(Flujos, Mes, Promedio_Diario) |> 
+  pivot_wider(names_from = Flujos, values_from = Promedio_Diario) |> 
+  mutate(Total = Ingresos + Salidas) |> 
+  # group_by(Flujos) |> 
+  # slice_tail(n = 12) |> 
+  # ungroup()
+  mutate(
+    last_value = Mes == max(Mes),
+    top_2 = Total %in% sort(unique(Total), decreasing = TRUE)[1:2],
+    bottom_2 = Total %in% sort(unique(Total))[1:2]
+  ) |> 
+  select(Mes, Ingresos, Salidas, last_value, top_2, bottom_2) |> 
+  pivot_longer(c(Ingresos, Salidas), names_to = "Flujos", values_to = "Promedio_Diario")
+
+
+
+  
+
+
+
+# Plot
+ggplot(tot_snm_bol, 
+       aes(
+  x = Mes,
+  y = Promedio_Diario,
+  color = Flujos
+)) +
+#    annotate("rect", xmin = max(last_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(
+    title = "Personas bolivianas",
+    subtitle = "Promedio de flujos diarios",
+    y = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+#   scale_x_continuous(
+#     breaks = last_data_dtm$date,
+# #    limits = c(start_date, max(all_data_dtm$date)+7)
+#     labels = format(last_data_dtm$date, "%d-%b")
+#   ) +
+  # scale_x_date(
+  #   date_labels="%b %Y", 
+  #   date_breaks  = all_data_dtm$date,
+  #              limits = c(start_date, max(all_data_dtm$date)+7)
+  #              ) +
+  # coord_cartesian(clip = "off") +
+  # facet_wrap(~ level, ncol = 2, scales='free') +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+#    labels = label_number(scale_cut = cut_short_scale())
+    limits = c(min(tot_snm_bol$Promedio_Diario) * 0.8, max(tot_snm_bol$Promedio_Diario) * 1.1)
+  ) +
+  scale_color_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 10,
+    order = c(1, 3)
+  ) +
+  geom_text_repel(
+   aes(label = ifelse(last_value | top_2 | bottom_2, format(Promedio_Diario, big.mark = ","), NA)),
+   size = 6,
+ #   hjust = -2,
+     direction = "y",
+     box.padding = unit(1, "lines"),
+     point.padding = unit(1, "lines"),
+     segment.color = NA,
+     min.segment.length = 0
+    # nudge_y = 2
+    # segment.color = NA,
+    # show.legend = FALSE
+  ) +
+  # geom_text(
+  #   aes(label = Total),
+  #   nudge_x = 0.25,
+  #   nudge_y = 20,
+  #   check_overlap = TRUE,
+  #   size = 7
+  # ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=16,
+        family="Lato"),
+    axis.text.y = element_blank(),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+saldo_2024_tot_bol <- snm_data |> 
+  filter(Nacionalidad == "BOLIVIANA") |> 
+  group_by(Flujos) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  pivot_wider(names_from = "Flujos", values_from = "Total") |> 
+  mutate(Saldo = Ingresos - Salidas)
+
+saldo_bol <- format(sum(saldo_2024_tot_bol$Saldo), big.mark = ",")
+
+
+# Overall chart since Jan 2023
+
+# PCF con más flujos
+
+
+```
+Entre el 1/Ene de 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el **saldo total de flujos regulares ha sido `r saldo_bol`**.
+
+```{r snm_saldo_bol, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=3.8}
+
+min_saldo_bol <- if_else(min(tot_snm_saldo_bol$Saldo) > 0, 0, min(tot_snm_saldo_bol$Saldo) * 1.1)
+max_saldo_bol <- if_else(max(tot_snm_saldo_bol$Saldo) < 0, 0, max(tot_snm_saldo_bol$Saldo) * 1.1)
+ 
+# Saldo triestral
+ggplot(tot_snm_saldo_bol, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))) +
+  geom_col(
+  fill = ifelse(tot_snm_saldo_bol$Saldo < 0, "#EF4A60", "#00B398"),
+  width = 0.5
+  ) +
+  geom_text(aes(label = format(Saldo, big.mark = ","),
+                colour = ifelse(Saldo < 0, "white", "black")),
+            position = position_dodge(width = 0.7),
+            hjust = -0.1,
+            size = 7
+  ) +
+  scale_colour_identity() +  # This ensures the colours are used as is
+  labs(
+    title = "Saldo trimestral",
+    x = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4), 
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(min_saldo_bol, max_saldo_bol)
+  ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.y = element_text(size=16,
+        family="Lato"),
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+
+```
+
+::: 
+
+::: column
+
+```{r snm_activityinfo_ven, echo=FALSE, warning=FALSE}
+# Entries and exits total since Jan 2023 by month
+
+tot_snm_ven <- snm_data |> 
+  filter(Nacionalidad == "VENEZOLANA") |> 
+  select(Flujos, Mes, Total, Update) |> 
+  group_by(Flujos, Mes, Update) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  mutate(Mes = paste(Mes, "-01", sep="")) |> 
+  mutate(Mes = ymd(Mes)) |> 
+  mutate(Update = ymd(Update)) |> 
+  mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
+  mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
+
+
+tot_snm_saldo_ven <- tot_snm_ven |> 
+  select(Flujos, Mes, Total) |> 
+  pivot_wider(names_from = Flujos, values_from = Total) |>
+  mutate(Saldo = Ingresos - Salidas) |> 
+  mutate(Flujos = "") |> 
+  select(Mes, Saldo) |> 
+  mutate(Q = quarter(Mes)) |> 
+  mutate(y = year(Mes)) |> 
+  mutate(Q = paste( y,"-", "Q", Q, sep = "")) |> 
+  group_by(Q) |> 
+  summarise_at(vars("Saldo"), sum, na.rm = TRUE)
+
+tot_snm_ven <- tot_snm_ven |> 
+  select(Flujos, Mes, Promedio_Diario) |> 
+  pivot_wider(names_from = Flujos, values_from = Promedio_Diario) |> 
+  mutate(Total = Ingresos + Salidas) |> 
+  # group_by(Flujos) |> 
+  # slice_tail(n = 12) |> 
+  # ungroup()
+  mutate(
+    last_value = Mes == max(Mes),
+    top_2 = Total %in% sort(unique(Total), decreasing = TRUE)[1:2],
+    bottom_2 = Total %in% sort(unique(Total))[1:2]
+  ) |> 
+  select(Mes, Ingresos, Salidas, last_value, top_2, bottom_2) |> 
+  pivot_longer(c(Ingresos, Salidas), names_to = "Flujos", values_to = "Promedio_Diario")
+
+
+
+
+# Plot
+ggplot(tot_snm_ven, 
+       aes(
+  x = Mes,
+  y = Promedio_Diario,
+  color = Flujos
+)) +
+#    annotate("rect", xmin = max(last_data_dtm$date), xmax = as.Date(Inf), ymin = -Inf, ymax = Inf, fill = "white", alpha = 0.8) +
+  geom_line(size = 0.7) +
+  geom_point(size = 2) +
+  labs(
+    title = "Personas venezolanas",
+    subtitle = "Promedio de flujos diarios",
+    y = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+#   scale_x_continuous(
+#     breaks = last_data_dtm$date,
+# #    limits = c(start_date, max(all_data_dtm$date)+7)
+#     labels = format(last_data_dtm$date, "%d-%b")
+#   ) +
+  # scale_x_date(
+  #   date_labels="%b %Y", 
+  #   date_breaks  = all_data_dtm$date,
+  #              limits = c(start_date, max(all_data_dtm$date)+7)
+  #              ) +
+  # coord_cartesian(clip = "off") +
+  # facet_wrap(~ level, ncol = 2, scales='free') +
+  scale_y_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4),
+#    labels = label_number(scale_cut = cut_short_scale())
+    limits = c(min(tot_snm_ven$Promedio_Diario) * 0.8, max(tot_snm_ven$Promedio_Diario) * 1.1)
+  ) +
+  scale_color_unhcr_d(
+    palette = "pal_unhcr",
+    nmax = 10,
+    order = c(1, 3)
+  ) +
+  geom_text_repel(
+   aes(label = ifelse(last_value | top_2 | bottom_2, format(Promedio_Diario, big.mark = ","), NA)),
+   size = 6,
+ #   hjust = -2,
+     direction = "y",
+     box.padding = unit(1, "lines"),
+     point.padding = unit(1, "lines"),
+     segment.color = NA,
+     min.segment.length = 0
+    # nudge_y = 2
+    # segment.color = NA,
+    # show.legend = FALSE
+  ) +
+  # geom_text(
+  #   aes(label = Total),
+  #   nudge_x = 0.25,
+  #   nudge_y = 20,
+  #   check_overlap = TRUE,
+  #   size = 7
+  # ) +
+  theme(
+     panel.background = element_rect(fill = "white"),
+ #   panel.grid = element_blank(),
+     panel.grid.major.y = element_blank(),
+     panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.x = element_text(size=16,
+        family="Lato"),
+    axis.text.y = element_blank(),
+    axis.line.x = element_line(colour = "black"),
+    text = element_text(size=16,
+        family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22,
+        family="Lato", face = "bold"),
+    plot.caption = element_text(size=12,
+        family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     axis.title = element_blank(),
+     panel.spacing = unit(1, "lines")  # Adjust the space between facets
+   )
+
+saldo_2024_tot_ven <- snm_data |> 
+  filter(Nacionalidad == "VENEZOLANA") |> 
+  group_by(Flujos) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  pivot_wider(names_from = "Flujos", values_from = "Total") |> 
+  mutate(Saldo = Ingresos - Salidas)
+
+
+saldo_ven <- format(sum(saldo_2024_tot_ven$Saldo), big.mark = ",")
+
+
+# Overall chart since Jan 2023
+
+# PCF con más flujos
+
+
+
+
+
+```
+Entre el 1/Ene de 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el **saldo total de flujos regulares ha sido `r saldo_ven`**.
+
+```{r snm_saldo_ven, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=3.8}
+
+min_saldo_ven <- if_else(min(tot_snm_saldo_ven$Saldo) > 0, 0, min(tot_snm_saldo_ven$Saldo) * 1.1)
+max_saldo_ven <- if_else(max(tot_snm_saldo_ven$Saldo) < 0, 0, max(tot_snm_saldo_ven$Saldo) * 1.1)
+
+# Saldo trimestral
+ggplot(tot_snm_saldo_ven, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))) +
+  geom_col(
+  fill = ifelse(tot_snm_saldo_ven$Saldo < 0, "#EF4A60", "#00B398"),
+    width = 0.5
+  ) +
+  geom_text(aes(label = format(Saldo, big.mark = ","),
+                colour = ifelse(Saldo < 0, "white", "black")),
+            position = position_dodge(width = 0.7),
+            hjust = -0.1,
+            size = 7
+  ) +
+  scale_colour_identity() +  # This ensures the colours are used as is
+  labs(
+    title = "Saldo trimestral",
+    x = "Personas",
+    caption = "Fuente: SNM"
+  ) +
+  scale_x_continuous(
+    expand = expansion(c(0, 0.1)),
+    breaks = pretty_breaks(n = 4), 
+    labels = label_number(scale_cut = cut_short_scale()),
+    limits = c(min_saldo_ven, max_saldo_ven)
+  ) +
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_blank(),
+    axis.ticks = element_blank(),
+    strip.background = element_rect(colour = "white", fill = "white"),
+    axis.text.y = element_text(size=16, family="Lato"),
+    axis.text.x = element_blank(),
+    axis.line.y = element_line(colour = "black"),
+    text = element_text(size=16, family="Lato"),
+    strip.text = element_text(size=18, face = "bold"),
+    title = element_text(size=22, family="Lato", face = "bold"),
+    plot.caption = element_text(size=12, family="Lato", face = "plain"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.title = element_blank(),
+    panel.spacing = unit(1, "lines")  # Adjust the space between facets
+  )
+
+
+
+```
+
+:::
+:::
+
 ## Orientaciones brindadas en frontera
 
 ```{r, echo=FALSE, warning=FALSE}
 
 
 rudah_ori <- main |> 
-  dplyr::filter(today > date_start_filter) 
+  dplyr::filter(today >= date_start_filter) 
 
 
 total_ori_gen <- rudah_ori |>
@@ -1054,7 +2345,7 @@ Para más información, consultar el [dashboard de monitoreo de fronteras](https
 ```{r tot_distrib_7, echo=FALSE, warning=FALSE, message=FALSE, fig.align = 'center', results='hide'}
 
 rudah <- main |> 
-  dplyr::filter(today > date_start_filter) 
+  dplyr::filter(today >= date_start_filter) 
 
 
 total_kits <- rudah |> 
@@ -1070,6 +2361,8 @@ total_cris <- rudah |>
  sum()
 
 personas_kits <- rudah |> 
+  select(starts_with("kit_dis_"), "member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
   mutate(sum = rowSums(across(starts_with("kit_dis_")))) |> 
   filter(sum > 0) |> 
   select("member_count") |> 
@@ -1078,6 +2371,8 @@ personas_kits <- rudah |>
   sum()
 
 personas_cris <- rudah |> 
+  select(starts_with("cri_dis_"), "member_count") |> 
+  mutate_all(~coalesce(.,0)) |> 
   mutate(sum = rowSums(across(starts_with("cri_dis_")))) |> 
   filter(sum > 0) |> 
   select("member_count") |> 
@@ -1168,7 +2463,7 @@ ggplot(kits_cris_plot) +
 :::
 
 ::: column
-Durante la última semana, la operación distribuyó `r total_kits` Kits y `r total_cris` CRIs y Food Items, asistiendo a un total de `r personas_kits_cris` personas (`r personas_kits` personas recibieron kits y `r personas_cris` recibieron CRIs y/o Food Items).
+Durante la última semana, entre el `r format(date_start_filter, "%d-%b")` y el `r format(date_today, "%d-%b")`, la operación distribuyó `r total_kits` Kits y `r total_cris` CRIs y Food Items, asistiendo a un total de `r personas_kits_cris` personas (`r personas_kits` personas recibieron kits y `r personas_cris` recibieron CRIs y/o Food Items).
 :::
 :::
 
@@ -1690,9 +2985,9 @@ xls <- kobo_form("aoSWoUrToEhdL2Zc9pvhJY") |>
   mutate(across(label, str_replace, '__cri_other_', 'CRI (otro)')) |> 
   mutate(label = str_trim(label)) |> 
   select(name, label) |> 
-  add_row(name = "qt_cri_toallas", label = "Toallas higiénicas") |> 
-  add_row(name = "qt_cri_bloqueador", label = "Bloqueadores solares") |> 
-  add_row(name = "qt_cri_atun", label = "Latas de conserva de atún") |> 
+#  add_row(name = "qt_cri_toallas", label = "Toallas higiénicas") |> 
+#  add_row(name = "qt_cri_bloqueador", label = "Bloqueadores solares") |> 
+#  add_row(name = "qt_cri_atun", label = "Latas de conserva de atún") |> 
   add_row(name = "qt_kit_t_familiar", label = "Kit de higiene (familiar)") |> 
   add_row(name = "qt_kit13", label = "Kit de alimento") |> 
   add_row(name = "qt_kit_oficina", label = "Kit de oficina") |> 
@@ -2325,8 +3620,146 @@ El Anexo 2 brinda un desglose completo por tipo de insumo, socio y región.
 
 \newpage
 
+## Brechas
+```{r brechas_setup, echo=FALSE, warning=FALSE}
+
+#How much is available in stock
+
+activityInfoToken(Sys.getenv('ACTIVITYINFO_API'), prompt = FALSE)
+
+stock_data <- queryTable("c9rxrtmlyt3ar193") |> 
+  select(Unidad.Name, Tipo.de.kit, Cantidad.en.stock, Fecha.de.actualizacion) |> 
+  rename(region = Unidad.Name) |> 
+  rename(Detalle = Tipo.de.kit) |> 
+  rename(Stock = Cantidad.en.stock) |> 
+  rename(Update = Fecha.de.actualizacion) |> 
+  mutate(Detalle = stri_trans_general(Detalle, "Latin-ASCII")) |> 
+  mutate(across('Detalle', str_replace, 'Familiar', 'Kit de higiene (familiar)')) |> 
+  mutate(across('Detalle', str_replace, 'Adultos', 'Kit Adultos/as/es (personas en tránsito – caminante)')) |> 
+  mutate(across('Detalle', str_replace, 'Extra Mujer', 'Kit de dignidad (extra mujer)')) |>
+  mutate(across('Detalle', str_replace, 'Nino/a', 'Kit de niño/a (personas en tránsito – caminante)')) |> 
+  mutate(across('Detalle', str_replace, 'Bebe', 'Kit bebe (personas en tránsito – caminante)')) |> 
+  mutate(across('region', str_replace, 'FU Tacna', 'Tacna'))
 
 
+# How much has been distributed since the stock update
+stock_used <- rudah_all |>
+  select(region, today, starts_with("qt_kit"), starts_with("qt_cri")) |>
+  mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
+  mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
+  mutate_at(vars(starts_with("qt_cri")), as.numeric) |>
+  group_by(region, today) |> 
+  summarise_at(vars(starts_with("qt_kit"), starts_with("qt_cri")), sum, na.rm = TRUE) |> 
+  ungroup() |> 
+  filter(today > max(stock_data$Update)) |> 
+  group_by(region) |> 
+  summarise_at(vars(starts_with("qt_")), sum, na.rm = TRUE) |> 
+  pivot_longer(cols = c(starts_with("qt_")), names_to="Tipo", values_to="Total") |>
+  left_join(xls, by = c('Tipo' = 'name')) |>
+  select(region, label, Total) |> 
+  rename("Detalle" = label) |> 
+  filter(Total > 0) |> 
+  ungroup() |> 
+  group_by(region, Detalle) |> 
+  summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
+  filter(region == "Tacna")
+
+# Projection: Kits needed
+predict_tacna <- kits_cris_list_trend_detail |> 
+  filter(region == "Tacna") |> 
+  mutate(Detalle = stri_trans_general(Detalle, "Latin-ASCII")) |> 
+  mutate(across('Detalle', ~ str_replace(., 'Kit Adultos/as/es \\(transito\\)', 'Kit Adultos/as/es (personas en tránsito – caminante)'))) |> 
+  mutate(across('Detalle', ~ str_replace(., 'Kit de nino/a \\(transito\\)', 'Kit de niño/a (personas en tránsito – caminante)'))) |> 
+    mutate(across('Detalle', ~ str_replace(., 'Kit bebe \\(transito\\)', 'Kit bebe (personas en tránsito – caminante)'))) 
+  
+# Gap calculation
+brecha <- stock_data |> 
+  left_join(stock_used, by = "Detalle") |> 
+  mutate(Stock_rev = if_else(Stock - Total < 0, 0, Stock - Total)) |> 
+  select(region.x, Detalle, Stock_rev) |> 
+  left_join(predict_tacna, by = "Detalle") |> 
+  rename(Predict = Total) |> 
+  mutate(Available = Stock_rev - Predict) |> 
+  mutate(Per_Day = Predict / 30) |> 
+  mutate(Days_Left = round(Stock_rev / Per_Day, 0)) |> 
+  mutate(Brecha = if_else(Days_Left < 30, "Brecha", "OK"))
+
+```
+
+Hay una **posible brecha** para los siguientes insumos:
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
+brecha |>
+  filter(Brecha == "Brecha") |> 
+  select(region, Detalle, Stock_rev, Predict, Days_Left) |> 
+  rename(`Stock estimado` = Stock_rev) |> 
+  rename(`Necesarios` = Predict) |> 
+  rename(`Días cubiertos` = Days_Left) |>  
+  group_by(region) |>
+  gt() |> 
+  tab_style(
+    style = cell_text(size = px(12), indent = px(20)),
+    locations = cells_body()) |> 
+  tab_header(
+    title = md("Brechas de insumos durante los próximos 30 días"),
+    subtitle = "Por región, tipo de insumo y cantidad"
+  ) |> 
+  tab_source_note(
+    source_note = md(
+      "Fuente: Estimación desde el Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+    )
+  ) |> 
+    opt_row_striping(row_striping = TRUE) |> 
+  tab_options(data_row.padding = px(1),
+                heading.padding = px(3),
+                heading.title.font.size = px(14),
+                heading.subtitle.font.size = px(12),
+                column_labels.font.size = px(12),
+                column_labels.font.weight = px(12),
+                row_group.font.size = px(13),
+                row_group.padding = px(2),
+                source_notes.font.size = px(9),
+                table.width = pct(100))
+
+```
+
+No se registra una brecha para los siguientes insumos:
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
+brecha |>
+  filter(Brecha != "Brecha") |> 
+  select(region, Detalle, Stock_rev, Predict, Days_Left) |> 
+  rename(`Stock estimado` = Stock_rev) |> 
+  rename(`Necesarios` = Predict) |> 
+  rename(`Días cubiertos` = Days_Left) |>  
+  group_by(region) |>
+  gt() |> 
+  tab_style(
+    style = cell_text(size = px(12), indent = px(20)),
+    locations = cells_body()) |> 
+  tab_header(
+    title = md("Insumos y stocks para los próximos 30 días"),
+    subtitle = "Por región, tipo de insumo y cantidad"
+  ) |> 
+  tab_source_note(
+    source_note = md(
+      "Fuente: Estimación desde el Registro Único para la Distribución de Asistencia Humanitaria (RUDAH)"
+    )
+  ) |> 
+    opt_row_striping(row_striping = TRUE) |> 
+  tab_options(data_row.padding = px(1),
+                heading.padding = px(3),
+                heading.title.font.size = px(14),
+                heading.subtitle.font.size = px(12),
+                column_labels.font.size = px(12),
+                column_labels.font.weight = px(12),
+                row_group.font.size = px(13),
+                row_group.padding = px(2),
+                source_notes.font.size = px(9),
+                table.width = pct(100))
+
+```
+
+\newpage
 ```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = 'left', fig.width=7,fig.height=2}
 
 
