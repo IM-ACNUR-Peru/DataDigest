@@ -4578,8 +4578,11 @@
     "resources/unhcr_logo_blue.svg": {
       "checksum": "bb2e078fb0ef665509df437e89075320"
     },
+    "Weekly_Data_Digest.html": {
+      "checksum": "b449c972b943844914fe1825aee57349"
+    },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "2f8a3ae2c229cd869438caa46cef6e4d"
+      "checksum": "bb962c444d1b6f1c526061a55c095352"
     }
   },
   "users": null

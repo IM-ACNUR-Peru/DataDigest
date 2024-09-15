@@ -505,7 +505,7 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 
 activityInfoToken(Sys.getenv('ACTIVITYINFO_API'), prompt = FALSE)
 
-snm_data <- queryTable("cb2ul80m143iu4m2") |> 
+snm_data <- queryTable("cxcy0gmm144dgd8b") |> 
   dplyr::filter(Update == max(Update)) |> 
   dplyr::filter(grepl("2024|2023", Mes))
 
@@ -1195,9 +1195,6 @@ tot_snm_col <- tot_snm_col |>
 
 
 
-  
-
-
 
 # Plot
 ggplot(tot_snm_col, 
@@ -1411,10 +1408,6 @@ tot_snm_bol <- tot_snm_bol |>
   ) |> 
   select(Mes, Ingresos, Salidas, last_value, top_2, bottom_2) |> 
   pivot_longer(c(Ingresos, Salidas), names_to = "Flujos", values_to = "Promedio_Diario")
-
-
-
-  
 
 
 
