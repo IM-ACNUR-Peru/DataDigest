@@ -505,7 +505,8 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 
 activityInfoToken(Sys.getenv('ACTIVITYINFO_API'), prompt = FALSE)
 
-snm_data <- queryTable("c6zrl40m0qysfrj3") |> 
+snm_data <- queryTable("cb2ul80m143iu4m2") |> 
+  dplyr::filter(Update == max(Update)) |> 
   dplyr::filter(grepl("2024|2023", Mes))
 
 snm_month <- as.character(month(max(snm_data$Update), label = TRUE))
