@@ -945,7 +945,7 @@ ggplot(snm_puntos) +
 # Entries and exits total since Jan 2023 by month
 
 tot_snm_ecu <- snm_data |> 
-  filter(Nacionalidad == "ECUATORIANA") |> 
+  filter(Nacionalidad == "Ecuatoriana") |> 
   select(Flujos, Mes, Total, Update) |> 
   group_by(Flujos, Mes, Update) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
@@ -1074,7 +1074,7 @@ ggplot(tot_snm_ecu,
    )
 
 saldo_2024_tot_ecu <- snm_data |> 
-  filter(Nacionalidad == "ECUATORIANA") |> 
+  filter(Nacionalidad == "Ecuatoriana") |> 
   group_by(Flujos) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
   ungroup() |> 
@@ -1159,7 +1159,7 @@ ggplot(tot_snm_saldo_ecu, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))
 # Entries and exits total since Jan 2023 by month
 
 tot_snm_col <- snm_data |> 
-  filter(Nacionalidad == "COLOMBIANA") |> 
+  filter(Nacionalidad == "Colombiana") |> 
   select(Flujos, Mes, Total, Update) |> 
   group_by(Flujos, Mes, Update) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
@@ -1286,7 +1286,7 @@ ggplot(tot_snm_col,
    )
 
 saldo_2024_tot_col <- snm_data |> 
-  filter(Nacionalidad == "COLOMBIANA") |> 
+  filter(Nacionalidad == "Colombiana") |> 
   group_by(Flujos) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
   ungroup() |> 
@@ -1375,7 +1375,7 @@ ggplot(tot_snm_saldo_col, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))
 # Entries and exits total since Jan 2023 by month
 
 tot_snm_bol <- snm_data |> 
-  filter(Nacionalidad == "BOLIVIANA") |> 
+  filter(Nacionalidad == "Boliviana") |> 
   select(Flujos, Mes, Total, Update) |> 
   group_by(Flujos, Mes, Update) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
@@ -1501,7 +1501,7 @@ ggplot(tot_snm_bol,
    )
 
 saldo_2024_tot_bol <- snm_data |> 
-  filter(Nacionalidad == "BOLIVIANA") |> 
+  filter(Nacionalidad == "Boliviana") |> 
   group_by(Flujos) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
   ungroup() |> 
@@ -1583,7 +1583,7 @@ ggplot(tot_snm_saldo_bol, aes(x = Saldo, y = factor(Q, levels = rev(unique(Q))))
 # Entries and exits total since Jan 2023 by month
 
 tot_snm_ven <- snm_data |> 
-  filter(Nacionalidad == "VENEZOLANA") |> 
+  filter(Nacionalidad == "Venezolana") |> 
   select(Flujos, Mes, Total, Update) |> 
   group_by(Flujos, Mes, Update) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
@@ -1711,7 +1711,7 @@ ggplot(tot_snm_ven,
    )
 
 saldo_2024_tot_ven <- snm_data |> 
-  filter(Nacionalidad == "VENEZOLANA") |> 
+  filter(Nacionalidad == "Venezolana") |> 
   group_by(Flujos) |> 
   summarise_at(vars("Total"), sum, na.rm = TRUE) |> 
   ungroup() |> 
