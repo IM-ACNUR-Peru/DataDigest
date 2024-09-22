@@ -482,7 +482,7 @@
         "Packaged": "2022-11-13 21:22:09 UTC; jo",
         "Repository": "CRAN",
         "Date/Publication": "2022-11-15 21:20:16 UTC",
-        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-09-02 00:22:43 UTC; windows",
+        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-09-19 01:13:42 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -1001,7 +1001,7 @@
         "Maintainer": "Jeroen Ooms <jeroen@berkeley.edu>",
         "Repository": "CRAN",
         "Date/Publication": "2024-08-26 09:40:03 UTC",
-        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-09-02 00:22:32 UTC; windows",
+        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-09-19 01:13:49 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -4579,10 +4579,25 @@
       "checksum": "bb2e078fb0ef665509df437e89075320"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "b449c972b943844914fe1825aee57349"
+      "checksum": "a5840887f9c1fd002449717d3536424a"
+    },
+    "Weekly_Data_Digest.pdf": {
+      "checksum": "2714673354694201d304e1803f5413f8"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "bb962c444d1b6f1c526061a55c095352"
+      "checksum": "0fa63b2ad0fd24585bf6995c0865f55f"
+    },
+    "Weekly_Data_Digest_files/figure-html/pbi_scraping-1.png": {
+      "checksum": "7e6ce8f0beb9640b9d3aee49e6f89c94"
+    },
+    "Weekly_Data_Digest_files/figure-html/snm_activityinfo-1.png": {
+      "checksum": "ab1343927fa64ce461d0d61bb6f23a8f"
+    },
+    "Weekly_Data_Digest_files/figure-html/snm_frontera-1.png": {
+      "checksum": "bc78f99feec3fe9ef868db837dbba29d"
+    },
+    "Weekly_Data_Digest_files/figure-html/snm_puntos-1.png": {
+      "checksum": "bfee147af767678759f8857c38726600"
     }
   },
   "users": null

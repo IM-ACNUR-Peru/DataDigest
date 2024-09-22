@@ -8,7 +8,7 @@ knit: pagedown::chrome_print
 ---
 
 
-```{r setup, include=FALSE}
+```{r setup1, include=FALSE}
 library(robotoolbox)
 library(tidyverse)
 library(purrr)
@@ -32,6 +32,7 @@ library(htmltools)
 library(activityinfo)
 library(lubridate)
 
+
 date_today <- Sys.Date() - 1
 
 date_start_filter <- Sys.Date() - 7
@@ -41,6 +42,10 @@ date_start_filter_month <- Sys.Date() - 31
 kobo_setup(url = "https://kobo.unhcr.org",
            token = Sys.getenv('KOBO_API_KEY'))
 
+```
+
+
+```{r rudah, include=FALSE}
 
 # RUDAH 2023
  x_2023 <- kobo_submissions("a9Erto2aYbgJamz8vdrtJt")
@@ -503,9 +508,10 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 ## Flujos regulares
 ```{r snm_activityinfo_setup, echo=FALSE, warning=FALSE}
 
+
 activityInfoToken(Sys.getenv('ACTIVITYINFO_API'), prompt = FALSE)
 
-snm_data <- queryTable("cxcy0gmm144dgd8b") |> 
+snm_data <- queryTable("c6kavj1m1b8x5n73") |> 
   dplyr::filter(Update == max(Update)) |> 
   dplyr::filter(grepl("2024|2023", Mes))
 
@@ -527,7 +533,7 @@ tot_snm <- snm_data |>
   mutate(Mes = ymd(Mes)) |> 
   mutate(Update = ymd(Update)) |> 
   mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
-  mutate(Tot_Days_Mes = if_else(year(Update) != year(Sys.Date()), Tot_Days_Mes, if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes))) |> 
+  dplyr::mutate(Tot_Days_Mes = if_else(year(Mes) != year(Sys.Date()), Tot_Days_Mes, if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes))) |> 
   filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
   mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0))
 
