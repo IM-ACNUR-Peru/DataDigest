@@ -41,7 +41,6 @@ library(htmltools)
 library(lubridate)
 library(riddle)
 library(activityinfo)
-library(magick)
 
 date_today <- Sys.Date() - 1
 
