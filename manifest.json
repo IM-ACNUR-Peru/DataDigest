@@ -2900,14 +2900,8 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "CRAN",
         "Date/Publication": "2024-09-20 08:40:10 UTC",
-        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-09-28 00:39:29 UTC; windows",
-        "Archs": "x64",
-        "RemoteType": "standard",
-        "RemotePkgRef": "magick",
-        "RemoteRef": "magick",
-        "RemoteRepos": "https://cran.rstudio.com/",
-        "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "2.8.5"
+        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-10-07 00:39:50 UTC; windows",
+        "Archs": "x64"
       }
     },
     "magrittr": {
@@ -5350,7 +5344,7 @@
       "checksum": "acb7566dbab8a200f70308b5b2a2f481"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "892463e480a3597b55d384aa7f3d311a"
+      "checksum": "6985c5eb553772dc87339c234e3c39da"
     }
   },
   "users": null
