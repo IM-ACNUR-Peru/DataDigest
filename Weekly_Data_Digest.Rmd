@@ -42,7 +42,7 @@ library(stringr)
 library(stringi)
 library(htmltools)
 library(lubridate)
-library(riddle)
+library(ridl)
 library(activityinfo)
 
 date_today <- Sys.Date() - 1
@@ -529,6 +529,8 @@ snm_data <- read_excel(df) |>
   dplyr::filter(Update == max(Update)) |> 
   dplyr::filter(grepl("2024|2023", Mes)) |> 
   filter(Nacionalidad == "Ecuatoriana" | Nacionalidad == "Boliviana" | Nacionalidad == "Venezolana" | Nacionalidad == "Colombiana")
+
+file.remove("SNM_Flows.xlsx")
 
 snm_month <- as.character(month(max(snm_data$Update), label = TRUE))
 

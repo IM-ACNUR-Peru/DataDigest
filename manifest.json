@@ -1671,6 +1671,37 @@
         "Built": "R 4.4.1; ; 2024-09-02 01:35:31 UTC; windows"
       }
     },
+    "hoardr": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "hoardr",
+        "Type": "Package",
+        "Title": "Manage Cached Files",
+        "Description": "Suite of tools for managing cached files, targeting\n    use in other R packages. Uses 'rappdirs' for cross-platform paths.\n    Provides utilities to manage cache directories, including targeting\n    files by path or by key; cached directories can be compressed and\n    uncompressed easily to save disk space.",
+        "Version": "0.5.4",
+        "Authors@R": "c(person(\"Scott\", \"Chamberlain\", role = \"aut\", \n    comment = c(ORCID=\"0000-0003-2542-2202\")),\n    person(\"Tamás\", \"Stirling\", role = c(\"ctb\", \"cre\"),\n    email = \"stirling.tamas@gmail.com\"))",
+        "License": "MIT + file LICENSE",
+        "URL": "https://docs.ropensci.org/hoardr/,\nhttps://github.com/ropensci/hoardr",
+        "BugReports": "https://github.com/ropensci/hoardr/issues",
+        "VignetteBuilder": "knitr",
+        "Encoding": "UTF-8",
+        "Imports": "R6, rappdirs, digest",
+        "Suggests": "testthat, knitr, rmarkdown",
+        "RoxygenNote": "7.2.3",
+        "X-schema.org-applicationCategory": "Data",
+        "X-schema.org-keywords": "caching, data, files, xml, pdf",
+        "X-schema.org-isPartOf": "https://ropensci.org",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-01-23 09:10:25 UTC; tamas",
+        "Author": "Scott Chamberlain [aut] (<https://orcid.org/0000-0003-2542-2202>),\n  Tamás Stirling [ctb, cre]",
+        "Maintainer": "Tamás Stirling <stirling.tamas@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-01-23 09:40:06 UTC",
+        "Built": "R 4.4.1; ; 2024-09-19 01:17:27 UTC; windows"
+      }
+    },
     "htmltools": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2181,6 +2212,36 @@
         "Repository": "CRAN",
         "Date/Publication": "2023-11-07 10:10:10 UTC",
         "Built": "R 4.4.1; ; 2024-09-02 01:05:11 UTC; windows"
+      }
+    },
+    "logger": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Type": "Package",
+        "Package": "logger",
+        "Authors@R": "c(\n    person(\"Gergely\", \"Daróczi\", , \"daroczig@rapporter.net\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-3149-8537\")),\n    person(\"System1\", role = c(\"fnd\"))\n    )",
+        "Title": "A Lightweight, Modern and Flexible Logging Utility",
+        "Description": "Inspired by the the 'futile.logger' R package and 'logging' Python module, this utility provides a flexible and extensible way of formatting and delivering log messages with low overhead.",
+        "Version": "0.3.0",
+        "Date": "2024-03-03",
+        "URL": "https://daroczig.github.io/logger/",
+        "BugReports": "https://github.com/daroczig/logger/issues",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.1",
+        "License": "AGPL-3",
+        "Imports": "utils",
+        "Suggests": "glue, pander, jsonlite, crayon, slackr (>= 1.4.1),\nRPushbullet, telegram, testthat, covr, knitr, rmarkdown,\ndevtools, roxygen2, parallel, rsyslog, shiny, callr, txtq,\nbotor, R.utils, syslognet",
+        "Enhances": "logging, futile.logger, log4r",
+        "VignetteBuilder": "knitr",
+        "Config/testthat/edition": "2",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-03-05 14:10:49 UTC; daroczig",
+        "Author": "Gergely Daróczi [aut, cre] (<https://orcid.org/0000-0003-3149-8537>),\n  System1 [fnd]",
+        "Maintainer": "Gergely Daróczi <daroczig@rapporter.net>",
+        "Repository": "CRAN",
+        "Date/Publication": "2024-03-05 16:20:02 UTC",
+        "Built": "R 4.4.1; ; 2024-09-19 01:15:08 UTC; windows"
       }
     },
     "lubridate": {
@@ -3002,6 +3063,41 @@
         "Author": "Hisham Galal [aut, cre]",
         "Maintainer": "Hisham Galal <galal@unhcr.org>",
         "Built": "R 4.4.1; ; 2024-10-08 21:28:57 UTC; windows"
+      }
+    },
+    "ridl": {
+      "Source": "gitlab",
+      "Repository": null,
+      "description": {
+        "Package": "ridl",
+        "Title": "A Client for the UNHCR RIDL Platform API",
+        "Description": "Client for the UNHCR RIDL Platform API\n    <https://ridl.unhcr.org>. Allows to search and download ridl datasets into R.",
+        "Version": "3.2.2.9001",
+        "Authors@R": "c(person(given = \"Ahmadou\",\n                    family = \"Dicko\",\n\t\t    email = \"mail@ahmadoudicko.com\",\n\t\t    role = c(\"aut\", \"cre\")),\n             person(given = \"Federico\",\n\t            family = \"Sanson\",\n                    email = \"sanson@unhcr.org\",\n\t\t    role = \"ctb\"),\n             person(given = \"Hisham\",\n                    family = \"Galal\",\n\t   \t    email = \"galal@unhcr.org\",\n\t\t    role = \"ctb\"),\n\t     person(\"UNHCR\",\n\t\t    role = \"cph\"))",
+        "License": "MIT + file LICENSE",
+        "LazyData": "TRUE",
+        "URL": "https://gitlab.com/dickoa/ridl",
+        "BugReports": "https://gitlab.com/dickoa/ridl/issues",
+        "Depends": "R (>= 4.1)",
+        "Imports": "crul (>= 1.1), jsonlite (>= 1.7.3), readr (>= 2.1.2), readxl\n(>= 1.3.1), haven (>= 2.4.3), memoise (>= 2.0.1), cachem (>=\n1.0.6), hoardr (>= 0.5.2), tibble (>= 3.1.6), logger (>=\n0.2.2), lifecycle (>= 1.0.3)",
+        "Suggests": "roxygen2 (>= 7.1.2), knitr (>= 1.37), rmarkdown (>= 2.11),\ntestthat (>= 3.1.2), covr (>= 3.5.1), webmockr (>= 0.8.0), vcr\n(>= 1.0.2)",
+        "Roxygen": "list(markdown = TRUE)",
+        "RoxygenNote": "7.2.3",
+        "Encoding": "UTF-8",
+        "Language": "en-US",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "vidonne/unhcrtemplate",
+        "RemoteType": "gitlab",
+        "RemoteHost": "gitlab.com",
+        "RemoteRepo": "ridl",
+        "RemoteUsername": "dickoa",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "f22e7447bc1daf4ce24b1dd42b71fdf3c068899b",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-09-20 18:53:47 UTC; ZANAZZI",
+        "Author": "Ahmadou Dicko [aut, cre],\n  Federico Sanson [ctb],\n  Hisham Galal [ctb],\n  UNHCR [cph]",
+        "Maintainer": "Ahmadou Dicko <mail@ahmadoudicko.com>",
+        "Built": "R 4.4.1; ; 2024-09-20 18:53:48 UTC; windows"
       }
     },
     "rlang": {
@@ -4103,7 +4199,7 @@
       "checksum": "acb7566dbab8a200f70308b5b2a2f481"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "4a9e66d2f5f70f54690995068c1bbee7"
+      "checksum": "50caa2a3cdd4d5c6395c7dd3fe81412f"
     }
   },
   "users": null
