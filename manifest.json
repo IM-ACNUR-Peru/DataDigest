@@ -4189,17 +4189,14 @@
     "resources/unhcr_logo_blue.svg": {
       "checksum": "bb2e078fb0ef665509df437e89075320"
     },
-    "SNM_Flows.xlsx": {
-      "checksum": "487a79cc3ffbb8daf8f1c82d1969da9d"
-    },
     "Weekly_Data_Digest.html": {
-      "checksum": "835dcc802fbfcf5838374d1ecd5b8bca"
+      "checksum": "3b6de0e906d5ab1c74c03ca9981be4ea"
     },
     "Weekly_Data_Digest.pdf": {
       "checksum": "acb7566dbab8a200f70308b5b2a2f481"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "50caa2a3cdd4d5c6395c7dd3fe81412f"
+      "checksum": "4ff5b697690f38161c327e469f81e065"
     }
   },
   "users": null

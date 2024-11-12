@@ -518,7 +518,7 @@ Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjo
 \newpage
 
 ## Flujos regulares de 4 nacionalidades
-```{r snm_ridl_setup, echo=FALSE, warning=FALSE}
+```{r snm_ridl_setup, echo=FALSE, warning=FALSE, message = FALSE, include=FALSE}
 
 
 file_url <- "https://ridl.unhcr.org/dataset/60d1ea06-4bd0-4cb8-bcc4-d563e63f7ab1/resource/f4d35ee7-8f1a-421b-b961-a6e9ad4029b8/download/snm_flows.xlsx"
@@ -783,7 +783,7 @@ Entre el 1/Ene 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el
 
 ::: column
 
-```{r snm_frontera, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=10}
+```{r snm_frontera, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=9}
 
 snm_frontera <- snm_data |> 
   dplyr::filter(grepl("2024", Mes)) |> 
@@ -862,7 +862,7 @@ ggplot(snm_frontera) +
 ::: 
 
 ::: column
-```{r snm_puntos, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=10}
+```{r snm_puntos, dpi = 200,  echo=FALSE, warning=FALSE, fig.height=9}
 
 snm_puntos <- snm_data |> 
   dplyr::filter(grepl("2024", Mes)) |> 
@@ -971,7 +971,7 @@ tot_snm_ecu <- snm_data |>
   mutate(Mes = ymd(Mes)) |> 
   mutate(Update = ymd(Update)) |> 
   mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
-  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes) & year(Update) == year (Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
   filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
   mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
 
@@ -1185,7 +1185,7 @@ tot_snm_col <- snm_data |>
   mutate(Mes = ymd(Mes)) |> 
   mutate(Update = ymd(Update)) |> 
   mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
-  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes) & year(Update) == year (Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
   filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
   mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
 
@@ -1401,7 +1401,7 @@ tot_snm_bol <- snm_data |>
   mutate(Mes = ymd(Mes)) |> 
   mutate(Update = ymd(Update)) |> 
   mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
-  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes) & year(Update) == year (Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
   filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
   mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
 
@@ -1609,7 +1609,7 @@ tot_snm_ven <- snm_data |>
   mutate(Mes = ymd(Mes)) |> 
   mutate(Update = ymd(Update)) |> 
   mutate(Tot_Days_Mes = days_in_month(Mes)) |> 
-  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
+  mutate(Tot_Days_Mes = if_else(month(Update) == month(Mes) & year(Update) == year (Mes), as.numeric(day(Update)), Tot_Days_Mes)) |> 
   filter(Tot_Days_Mes > 2) |> #With just one day of data results can be inaccurate
   mutate(Promedio_Diario = round(Total / Tot_Days_Mes, 0)) 
 
