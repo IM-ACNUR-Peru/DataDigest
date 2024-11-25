@@ -2732,7 +2732,9 @@ ggplot(total_kits_cris_line, aes(
 
 ```
 
-El Anexo 1 brinda el desglose de los Kits, CRIs y Food Items distribuidos durante los últimos 7 días por región. \newpage
+El Anexo 1 brinda el desglose de los Kits, CRIs y Food Items distribuidos durante los últimos 7 días por región. 
+
+\newpage
 
 ## Distribuciones acumuladas
 
@@ -3311,6 +3313,7 @@ projectiondays = 30
 
 kits_cris_list_trend_pred <- rudah_all |>
   select(region, today, qt_kit_higiene_familiar, qt_kit_dignidad, starts_with("qt_cri")) |>
+  filter(today > referencemin) |> 
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
@@ -3336,7 +3339,6 @@ kits_cris_list_trend_pred <- rudah_all |>
   mutate(cma_kits = zoo::rollmean(Kit, 10, fill = NA)) |>   # Centered moving average
   mutate(cma_cris = zoo::rollmean(CRI, 10, fill = NA)) |> # Centered moving average
   filter(!is.na(cma_cris)) |> 
-  filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region) |> 
   summarise_at(c("cma_kits", "cma_cris"), mean, na.rm = TRUE) |> 
@@ -3387,6 +3389,7 @@ Con desglose estimado por tipo de Kit, CRI y Food Item:
 ## Trends by Kits and CRIs
 kits_cris_list_trend_detail <- rudah_all |>
   select(region, today, qt_kit_higiene_familiar, qt_kit_dignidad, starts_with("qt_cri")) |>
+  filter(today > referencemin) |> 
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
@@ -3415,7 +3418,6 @@ kits_cris_list_trend_detail <- kits_cris_list_trend_detail |>
   mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_")), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
   na.omit()|> 
-  filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region) |> 
   summarise_at(vars(starts_with("qt_")), mean, na.rm = TRUE) |> 
@@ -3527,6 +3529,7 @@ kits_cris_list_trend_detail_socios <- rudah_all |>
   dplyr::mutate(organizacion = replace(organizacion, tipo_socio == "aldeas", "Aldeas"))|> 
   dplyr::filter(tipo_socio != "other") |> 
   select(region, today, organizacion, qt_kit_higiene_familiar, qt_kit_dignidad, starts_with("qt_cri")) |>
+  filter(today > referencemin) |> 
   mutate_at(vars(starts_with("qt_kit")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_kit")), as.numeric) |>
   mutate_at(vars(starts_with("qt_cri")), ~ replace(., is.na(.), 0)) |>
@@ -3560,7 +3563,6 @@ kits_cris_list_trend_detail_socios <- kits_cris_list_trend_detail_socios |>
   mutate_at(vars(starts_with("qt_")), ~ replace(., is.na(.), 0)) |>
   mutate_at(vars(starts_with("qt_")), list(~zoo::rollmean(., 7, fill = NA, align = "center"))) |> 
   na.omit()|> 
-  filter(today > referencemin) |> 
   na.omit() |> 
   group_by(region, organizacion) |> 
   summarise_at(vars(starts_with("qt_")), mean, na.rm = TRUE) |> 
