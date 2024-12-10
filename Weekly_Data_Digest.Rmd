@@ -249,7 +249,7 @@ pbi <- function(file, location, pob) {
   str_replace("2023-01-03", as.character(Sys.Date()-180)) |> 
   str_replace("2024-05-30", as.character(Sys.Date()))
   
-  r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "f4238ef3-6559-492b-95ac-f285a3a62588"))
+  r <- POST(url, body = query, add_headers("X-PowerBI-ResourceKey" = "84e535e3-6ec4-4f8f-9fbf-778745af0146"))
   
   ds <- jsonlite::fromJSON(content(r, as = "text"))$results$result$data$dsr$DS[[1]]
 
@@ -506,7 +506,7 @@ Durante los últimos 12 meses, el saldo diario según conteos DTM ha sido de **`
 
 Cabe resaltar que estas cifras no corresponden necesariamente a las estimaciones del GTRM.
 
-Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiZjQyMzhlZjMtNjU1OS00OTJiLTk1YWMtZjI4NWEzYTYyNTg4IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
+Dashboard DTM de conteos en frontera: [ ](https://app.powerbi.com/view?r=eyJrIjoiODRlNTM1ZTMtNmVjNC00ZjhmLTlmYmYtNzc4NzQ1YWYwMTQ2IiwidCI6IjE1ODgyNjJkLTIzZmItNDNiNC1iZDZlLWJjZTQ5YzhlNjE4NiIsImMiOjh9)
 
 </div>
 
