@@ -1814,7 +1814,7 @@
         "Maintainer": "Winston Chang <winston@posit.co>",
         "Repository": "CRAN",
         "Date/Publication": "2024-03-26 05:50:06 UTC",
-        "Built": "R 4.4.1; x86_64-w64-mingw32; 2024-09-02 01:19:46 UTC; windows",
+        "Built": "R 4.4.2; x86_64-w64-mingw32; 2025-01-16 02:54:52 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -2535,25 +2535,25 @@
         "Package": "pagedown",
         "Type": "Package",
         "Title": "Paginate the HTML Output of R Markdown with CSS for Print",
-        "Version": "0.20",
-        "Authors@R": "c(\n  person(\"Yihui\", \"Xie\", role = c(\"aut\", \"cre\"), email = \"xie@yihui.name\", comment = c(ORCID = \"0000-0003-0645-5666\")),\n  person(\"Romain\", \"Lesur\", role = c(\"aut\", \"cph\"), comment = c(ORCID = \"0000-0002-0721-5595\")),\n  person(\"Brent\", \"Thorne\", role = \"aut\", comment = c(ORCID = \"0000-0002-1099-3857\")),\n  person(\"Xianying\", \"Tan\", role = \"aut\", comment = c(ORCID = \"0000-0002-6072-3521\")),\n  person(\"Christophe\", \"Dervieux\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0003-4474-2498\")),\n  person(\"Atsushi\", \"Yasumoto\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0002-8335-495X\")),\n  person(family = \"RStudio, PBC\", role = \"cph\"),\n  person(\"Adam\", \"Hyde\", role = \"ctb\", comment = \"paged.js in resources/js/\"),\n  person(\"Min-Zhong\", \"Lu\", role = \"ctb\", comment = \"resume.css in resources/css/\"),\n  person(\"Zulko\", role = \"ctb\", comment = \"poster-relaxed.css in resources/css/\"),\n  person()\n  )",
+        "Version": "0.22",
+        "Authors@R": "c(\n  person(\"Yihui\", \"Xie\", role = c(\"aut\", \"cre\"), email = \"xie@yihui.name\", comment = c(ORCID = \"0000-0003-0645-5666\")),\n  person(\"Romain\", \"Lesur\", role = c(\"aut\", \"cph\"), comment = c(ORCID = \"0000-0002-0721-5595\")),\n  person(\"Christophe\", \"Dervieux\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0003-4474-2498\")),\n  person(\"Brent\", \"Thorne\", role = \"aut\", comment = c(ORCID = \"0000-0002-1099-3857\")),\n  person(\"Xianying\", \"Tan\", role = \"aut\", comment = c(ORCID = \"0000-0002-6072-3521\")),\n  person(\"Atsushi\", \"Yasumoto\", role = c(\"ctb\"), comment = c(ORCID = \"0000-0002-8335-495X\")),\n  person(given = \"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n  person(\"Adam\", \"Hyde\", role = \"ctb\", comment = \"paged.js in resources/js/\"),\n  person(\"Min-Zhong\", \"Lu\", role = \"ctb\", comment = \"resume.css in resources/css/\"),\n  person(\"Zulko\", role = \"ctb\", comment = \"poster-relaxed.css in resources/css/\"),\n  person()\n  )",
         "Description": "Use the paged media properties in CSS and the JavaScript\n  library 'paged.js' to split the content of an HTML document into discrete\n  pages. Each page can have its page size, page numbers, margin boxes, and\n  running headers, etc. Applications of this package include books, letters,\n  reports, papers, business cards, resumes, and posters.",
         "Depends": "R (>= 3.5.0)",
-        "Imports": "rmarkdown (>= 2.13), bookdown (>= 0.8), htmltools, jsonlite,\nlater (>= 1.0.0), processx, servr (>= 0.23), httpuv, xfun,\nwebsocket",
+        "Imports": "rmarkdown (>= 2.13), bookdown (>= 0.8), htmltools, jsonlite,\nlater (>= 1.0.0), processx, servr (>= 0.31), httpuv, xfun,\nwebsocket",
         "Suggests": "promises, testit, xaringan, pdftools, revealjs, covr, xml2",
         "License": "MIT + file LICENSE",
         "URL": "https://github.com/rstudio/pagedown",
         "BugReports": "https://github.com/rstudio/pagedown/issues",
         "SystemRequirements": "Pandoc (>= 2.2.3)",
         "Encoding": "UTF-8",
-        "RoxygenNote": "7.1.2",
+        "RoxygenNote": "7.3.2",
         "NeedsCompilation": "no",
-        "Packaged": "2022-12-13 05:29:20 UTC; yihui",
-        "Author": "Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>),\n  Romain Lesur [aut, cph] (<https://orcid.org/0000-0002-0721-5595>),\n  Brent Thorne [aut] (<https://orcid.org/0000-0002-1099-3857>),\n  Xianying Tan [aut] (<https://orcid.org/0000-0002-6072-3521>),\n  Christophe Dervieux [ctb] (<https://orcid.org/0000-0003-4474-2498>),\n  Atsushi Yasumoto [ctb] (<https://orcid.org/0000-0002-8335-495X>),\n  RStudio, PBC [cph],\n  Adam Hyde [ctb] (paged.js in resources/js/),\n  Min-Zhong Lu [ctb] (resume.css in resources/css/),\n  Zulko [ctb] (poster-relaxed.css in resources/css/)",
+        "Packaged": "2025-01-07 14:10:09 UTC; runner",
+        "Author": "Yihui Xie [aut, cre] (<https://orcid.org/0000-0003-0645-5666>),\n  Romain Lesur [aut, cph] (<https://orcid.org/0000-0002-0721-5595>),\n  Christophe Dervieux [ctb] (<https://orcid.org/0000-0003-4474-2498>),\n  Brent Thorne [aut] (<https://orcid.org/0000-0002-1099-3857>),\n  Xianying Tan [aut] (<https://orcid.org/0000-0002-6072-3521>),\n  Atsushi Yasumoto [ctb] (<https://orcid.org/0000-0002-8335-495X>),\n  Posit Software, PBC [cph, fnd],\n  Adam Hyde [ctb] (paged.js in resources/js/),\n  Min-Zhong Lu [ctb] (resume.css in resources/css/),\n  Zulko [ctb] (poster-relaxed.css in resources/css/)",
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "CRAN",
-        "Date/Publication": "2022-12-13 05:50:02 UTC",
-        "Built": "R 4.4.1; ; 2024-09-28 02:00:55 UTC; windows"
+        "Date/Publication": "2025-01-07 15:20:11 UTC",
+        "Built": "R 4.4.2; ; 2025-01-16 03:26:30 UTC; windows"
       }
     },
     "pillar": {
@@ -3330,7 +3330,7 @@
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "CRAN",
         "Date/Publication": "2024-10-04 17:20:02 UTC",
-        "Built": "R 4.4.1; ; 2024-10-07 02:02:18 UTC; windows"
+        "Built": "R 4.4.2; ; 2025-01-16 03:12:48 UTC; windows"
       }
     },
     "shades": {
@@ -3641,10 +3641,10 @@
         "Package": "tinytex",
         "Type": "Package",
         "Title": "Helper Functions to Install and Maintain TeX Live, and Compile\nLaTeX Documents",
-        "Version": "0.53",
+        "Version": "0.54",
         "Authors@R": "c(\n  person(\"Yihui\", \"Xie\", role = c(\"aut\", \"cre\", \"cph\"), email = \"xie@yihui.name\", comment = c(ORCID = \"0000-0003-0645-5666\")),\n  person(given = \"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n  person(\"Christophe\", \"Dervieux\", role = \"ctb\", comment = c(ORCID = \"0000-0003-4474-2498\")),\n  person(\"Devon\", \"Ryan\", role = \"ctb\", email = \"dpryan79@gmail.com\", comment = c(ORCID = \"0000-0002-8549-0971\")),\n  person(\"Ethan\", \"Heinzen\", role = \"ctb\"),\n  person(\"Fernando\", \"Cagua\", role = \"ctb\"),\n  person()\n  )",
         "Description": "Helper functions to install and maintain the 'LaTeX' distribution\n  named 'TinyTeX' (<https://yihui.org/tinytex/>), a lightweight, cross-platform,\n  portable, and easy-to-maintain version of 'TeX Live'. This package also\n  contains helper functions to compile 'LaTeX' documents, and install missing\n  'LaTeX' packages automatically.",
-        "Imports": "xfun (>= 0.29)",
+        "Imports": "xfun (>= 0.48)",
         "Suggests": "testit, rstudioapi",
         "License": "MIT + file LICENSE",
         "URL": "https://github.com/rstudio/tinytex",
@@ -3652,12 +3652,12 @@
         "Encoding": "UTF-8",
         "RoxygenNote": "7.3.2",
         "NeedsCompilation": "no",
-        "Packaged": "2024-09-15 17:14:54 UTC; yihui",
+        "Packaged": "2024-11-01 14:22:24 UTC; yihui",
         "Author": "Yihui Xie [aut, cre, cph] (<https://orcid.org/0000-0003-0645-5666>),\n  Posit Software, PBC [cph, fnd],\n  Christophe Dervieux [ctb] (<https://orcid.org/0000-0003-4474-2498>),\n  Devon Ryan [ctb] (<https://orcid.org/0000-0002-8549-0971>),\n  Ethan Heinzen [ctb],\n  Fernando Cagua [ctb]",
         "Maintainer": "Yihui Xie <xie@yihui.name>",
         "Repository": "CRAN",
-        "Date/Publication": "2024-09-15 18:00:02 UTC",
-        "Built": "R 4.4.1; ; 2024-09-28 01:19:35 UTC; windows"
+        "Date/Publication": "2024-11-01 15:10:02 UTC",
+        "Built": "R 4.4.2; ; 2025-02-11 01:38:20 UTC; windows"
       }
     },
     "treemapify": {
@@ -4190,13 +4190,16 @@
       "checksum": "bb2e078fb0ef665509df437e89075320"
     },
     "Weekly_Data_Digest.html": {
-      "checksum": "d347f4c95030148dd8b3080512ac091d"
+      "checksum": "b86adc0bdde58043bd876992a3e22b0f"
     },
     "Weekly_Data_Digest.pdf": {
       "checksum": "acb7566dbab8a200f70308b5b2a2f481"
     },
     "Weekly_Data_Digest.Rmd": {
-      "checksum": "511c50ea163c6ea5704dd2fd4d4dd455"
+      "checksum": "3b46725d570d3279d513d740dc7a03a0"
+    },
+    "Weekly_Data_Digest_wDTM.Rmd": {
+      "checksum": "9f1d3330ce2a208ea1dfe22d81c1d23b"
     }
   },
   "users": null
