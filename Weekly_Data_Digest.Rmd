@@ -495,7 +495,7 @@ saldo_total <- format(sum(saldo_2024_tot$Saldo), big.mark = ",")
 
 
 ```
-Entre el 1/Ene 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2024, el **saldo total de flujos regulares para estas 4 nacionalidades ha sido `r saldo_total`**.
+Entre el 1/Ene 2023 y el `r day(max(snm_data$Update))`/`r snm_month` de 2025, el **saldo total de flujos regulares para estas 4 nacionalidades ha sido `r saldo_total`**.
 
 <br>
 
